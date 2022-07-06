@@ -74,17 +74,31 @@ export class Storage {
             console.log(this.zustFile);
             const keys = Object.keys(this.zustaendigkeiten);
             let content = 'id\tleistungID\tuebergeordnetesObjektID\tgebietID\n';
-            keys.forEach(key => {
+            let round = 0;
+            keys.forEach((key, i) => {
                 const element = this.zustaendigkeiten[key];
                 content += element.id + '\t' + element.leistungID + '\t' + element.uebergeordnetesObjektID + '\t' + element.gebietId + '\n';
+                if (Math.trunc(i / 2000000) > round) {
+                    this.writeOrAppend(this.zustFile, content, round);
+                    round++;
+                    content = '';
+                }
             });
-            fs.writeFileSync(this.zustFile, content);
+            this.writeOrAppend(this.zustFile, content, round);
             console.log(this.nextUrlSave);
             fs.writeFileSync(this.nextUrlSave, nextUrl);
         } catch (error) {
             throw error;
         }
         console.log('done');
+    }
+
+    writeOrAppend(fileName: string, content: string, part: number) {
+        if (part === 0) {
+            fs.writeFileSync(fileName, content);
+        } else {
+            fs.appendFileSync(fileName, content);
+        }
     }
 
     addLeistung(restLeistung: RestLeistung) {
