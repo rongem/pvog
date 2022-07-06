@@ -117,7 +117,7 @@ export class DataImport {
         console.log(
             'Minuten:', Math.round((Date.now().valueOf() - startTime) / 6000) / 10,
         );
-        // this.storage.removeOrphanedZustaendigkeit();
+        this.storage.removeOrphanedZustaendigkeit();
         this.storage.saveData(content.url);
         console.log('Minuten:', Math.round((Date.now().valueOf() - startTime) / 6000) / 10);
     }

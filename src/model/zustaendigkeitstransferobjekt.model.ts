@@ -5,6 +5,7 @@ export interface Zustaendigkeit {
   uebergeordnetesObjektID: string,
   leistungID: string;
   zustaendigkeitsSchema: string;
+  gebietId: string;
 }
 
 export const createZustaendigkeit = (zust: RestZustaendigkeitTransferObjekt): Zustaendigkeit => ({
@@ -12,5 +13,6 @@ export const createZustaendigkeit = (zust: RestZustaendigkeitTransferObjekt): Zu
   uebergeordnetesObjektID: zust.uebergeordnetesObjektID.text,
   leistungID: zust.zustaendigkeit.leistungID.text,
   zustaendigkeitsSchema: zust.zustaendigkeit.id._schemeID,
+  gebietId: zust.zustaendigkeit.gebietID.text,
 });
 

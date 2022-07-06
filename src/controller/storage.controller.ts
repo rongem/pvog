@@ -11,9 +11,7 @@ import { Logging } from './logging.controller';
 
 export class Storage {
     private typisierungen: CodeList = {};
-    private bundeslaender: CodeList = {};
     private typisierungChanged = false;
-    private bundeslaenderChanged = false;
     private leistungen: {[key: string]: ILeistung} = {};
     private organisationseinheiten: {[key: string]: Organisation} = {};
     private zustaendigkeiten: {[key: string]: Zustaendigkeit} = {};
@@ -21,7 +19,6 @@ export class Storage {
     private leistungFile = '../leistungen.json';
     private oeFile = '../organisationseinheiten.json';
     private typFile = '../typisierungen.json';
-    private bundeslandFile = '../bundeslaender.json';
     private zustFile = '../zustaendigkeiten.csv';
     private log = Logging.getInstance();
     public startURL = '';
@@ -34,9 +31,6 @@ export class Storage {
             console.log(this.leistungFile);
             const la = JSON.parse(fs.readFileSync(this.leistungFile).toString()) as ILeistung[];
             la.forEach(l => this.leistungen[l.id] = l);
-            console.log(this.bundeslandFile);
-            const bl = JSON.parse(fs.readFileSync(this.bundeslandFile).toString()) as CodeListEntry[];
-            bl.forEach(b => this.bundeslaender[b.code] = b);
             console.log(this.typFile);
             const ty = JSON.parse(fs.readFileSync(this.typFile).toString()) as CodeListEntry[];
             ty.forEach(t => this.typisierungen[t.code] = t);
@@ -52,6 +46,7 @@ export class Storage {
                         id: values[0],
                         leistungID: values[1],
                         uebergeordnetesObjektID: values[2],
+                        gebietId: values[3],
                         zustaendigkeitsSchema: 'ZustaendigkeitOrganisationseinheit',
                     };
                     this.zustaendigkeiten[zust.id] = zust;
@@ -76,17 +71,12 @@ export class Storage {
                 fs.writeFileSync(this.typFile, JSON.stringify(Object.values(this.typisierungen)));
                 this.typisierungChanged = false;
             }
-            if (this.bundeslaenderChanged) {
-                console.log(this.bundeslandFile);
-                fs.writeFileSync(this.bundeslandFile, JSON.stringify(Object.values(this.bundeslaender)));
-                this.bundeslaenderChanged = false;
-            }
             console.log(this.zustFile);
             const keys = Object.keys(this.zustaendigkeiten);
-            let content = 'id\tleistungID\tuebergeordnetesObjektID\n';
+            let content = 'id\tleistungID\tuebergeordnetesObjektID\tgebietID\n';
             keys.forEach(key => {
                 const element = this.zustaendigkeiten[key];
-                content += element.id + '\t' + element.leistungID + '\t' + element.uebergeordnetesObjektID + '\n';
+                content += element.id + '\t' + element.leistungID + '\t' + element.uebergeordnetesObjektID + '\t' + element.gebietId + '\n';
             });
             fs.writeFileSync(this.zustFile, content);
             console.log(this.nextUrlSave);
@@ -132,15 +122,6 @@ export class Storage {
             this.log.logAction('create', 'organisationseinheit', oe.id);
         }
         this.organisationseinheiten[oe.id] = oe;
-        oe.orte.forEach((o, i) => {
-            if (o.bundesland && !this.bundeslaender[o.bundesland]) {
-                this.bundeslaenderChanged = true;
-                this.bundeslaender[o.bundesland] = {
-                    code: o.bundesland,
-                    name: organisationseinheit.anschrift[i].verwaltungspolitischeKodierung.bundesland.name
-                };
-            }
-        });
     }
 
     removeOrganisationseinheit(id: string) {
