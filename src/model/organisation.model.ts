@@ -1,3 +1,4 @@
+import { createID } from './id.model';
 import { RestOrganisationsEinheit } from './rest/organisationseinheit.model';
 
 export interface Organisation {
@@ -23,7 +24,7 @@ export const createOrganisation = (orgEinheit: RestOrganisationsEinheit): Organi
         orgEinheit.anschrift = [orgEinheit.anschrift as any];
     }
     return {
-        id: orgEinheit.id.text,
+        id: createID(orgEinheit.id),
         name: orgEinheit.name.name.text,
         languageCode: orgEinheit.name.name._languageCode,
         primaeresBundesland: orgEinheit.anschrift?.find(a => a.verwaltungspolitischeKodierung?.bundesland?.code)?.verwaltungspolitischeKodierung.bundesland.code,

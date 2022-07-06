@@ -1,5 +1,6 @@
 import { RestLeistung } from './rest/leistung.model';
 import { MultiLanguageText } from './ml-text.model';
+import { createID } from './id.model';
 
 const analyzeText = (i: MultiLanguageText): { wortAnzahl: number; zeichenAnzahl: number; languageCode: string; } => {
     const cleanedText = i.text.replace(/<\/?[^>]+(>|$)/g, '');
@@ -15,7 +16,7 @@ const getMultiLanguage = (b: { text: string; _languageCode: string; }): { text: 
 });
 
 export const createLeistung = (leistung: RestLeistung): ILeistung => ({
-    id: leistung.id.text,
+    id: createID(leistung.id),
     informationsbereichSDG: leistung.informationsbereichSDG?.code,
     kategorie: !!leistung.kategorie ? {
         bezeichnung: !leistung.kategorie.bezeichnung ? [] :

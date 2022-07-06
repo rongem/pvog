@@ -1,9 +1,8 @@
 import { MultiLanguageText } from '../ml-text.model';
+import { RestID } from './rest-id.model';
 
 export interface RestLeistung {
-    id: {
-        text: string,
-    },
+    id: RestID,
     struktur: {
         leistungsobjektID: {
             text: string,

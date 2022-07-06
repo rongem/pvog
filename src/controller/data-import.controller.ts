@@ -1,5 +1,6 @@
 import axios from 'axios';
 import { XMLParser, X2jOptions} from "fast-xml-parser";
+import { createID } from '../model/id.model';
 import { Token } from '../model/token.model';
 import { Logging } from './logging.controller';
 import { Storage } from './storage.controller';
@@ -89,7 +90,7 @@ export class DataImport {
                     deletable = [deletable as any];
                 }
                 deletable.forEach(entry => {
-                    const id = entry.id.text as string;
+                    const id = createID(entry.id);
                     switch(entry._klasse) {
                         case 'Zustaendigkeit':
                             this.storage.removeZustaendigkeit(id);

@@ -1,12 +1,11 @@
+import { RestID } from './rest-id.model';
+
 export interface RestZustaendigkeitTransferObjekt {
-    uebergeordnetesObjektID: { text: string },
+    uebergeordnetesObjektID: RestID;
     zustaendigkeit: {
-        id: {
-          text: string,
-          _schemeID: string
-        },
-        leistungID: { text: string },
-        gebietID: { text: string },
-        rolle: { code: string, name: string },
-    },
+        id: RestID;
+        leistungID: RestID;
+        gebietID: { text: string };
+        rolle: { code: string; name: string };
+    };
 }
