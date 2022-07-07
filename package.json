@@ -1,6 +1,6 @@
 {
   "name": "pvog",
-  "version": "0.0.1",
+  "version": "1.0.0",
   "description": "PVOG downloader",
   "main": "index.ts",
   "scripts": {
