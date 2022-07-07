@@ -2,9 +2,9 @@ import fs from 'fs';
 import { CodeListEntry } from '../model/code-list-entry.model';
 import { CodeList } from '../model/code-list.model';
 import { createLeistung, ILeistung } from '../model/leistung.interface';
-import { createOrganisation, Organisation } from '../model/organisation.model';
+// import { createOrganisation, Organisation } from '../model/organisation.model';
 import { RestLeistung } from '../model/rest/leistung.model';
-import { RestOrganisationsEinheit } from '../model/rest/organisationseinheit.model';
+// import { RestOrganisationsEinheit } from '../model/rest/organisationseinheit.model';
 import { RestZustaendigkeitTransferObjekt } from '../model/rest/zustaendigkeit.model';
 import { createZustaendigkeit, Zustaendigkeit } from '../model/zustaendigkeitstransferobjekt.model';
 import { Logging } from './logging.controller';
@@ -13,11 +13,11 @@ export class Storage {
     private typisierungen: CodeList = {};
     private typisierungChanged = false;
     private leistungen: {[key: string]: ILeistung} = {};
-    private organisationseinheiten: {[key: string]: Organisation} = {};
+    // private organisationseinheiten: {[key: string]: Organisation} = {};
     private zustaendigkeiten: {[key: string]: Zustaendigkeit} = {};
     private nextUrlSave = '../nexturl.txt';
     private leistungFile = '../leistungen.json';
-    private oeFile = '../organisationseinheiten.json';
+    // private oeFile = '../organisationseinheiten.json';
     private typFile = '../typisierungen.json';
     private zustFile = '../zustaendigkeiten.csv';
     private log = Logging.getInstance();
@@ -34,9 +34,9 @@ export class Storage {
             console.log(this.typFile);
             const ty = JSON.parse(fs.readFileSync(this.typFile).toString()) as CodeListEntry[];
             ty.forEach(t => this.typisierungen[t.code] = t);
-            console.log(this.oeFile);
-            const oe = JSON.parse(fs.readFileSync(this.oeFile).toString()) as Organisation[];
-            oe.forEach(o => this.organisationseinheiten[o.id] = o);
+            // console.log(this.oeFile);
+            // const oe = JSON.parse(fs.readFileSync(this.oeFile).toString()) as Organisation[];
+            // oe.forEach(o => this.organisationseinheiten[o.id] = o);
             console.log(this.zustFile);
             const zu = fs.readFileSync(this.zustFile).toString().split('\n');
             zu.forEach((z, i) => {
@@ -64,8 +64,8 @@ export class Storage {
         try {
             console.log(this.leistungFile);
             fs.writeFileSync(this.leistungFile, JSON.stringify(Object.values(this.leistungen)));
-            console.log(this.oeFile);
-            fs.writeFileSync(this.oeFile, JSON.stringify(Object.values(this.organisationseinheiten)));
+            // console.log(this.oeFile);
+            // fs.writeFileSync(this.oeFile, JSON.stringify(Object.values(this.organisationseinheiten)));
             if (this.typisierungChanged) {
                 console.log(this.typFile);
                 fs.writeFileSync(this.typFile, JSON.stringify(Object.values(this.typisierungen)));
@@ -128,33 +128,33 @@ export class Storage {
 
     }
 
-    addOrganisationsEinheit(organisationseinheit: RestOrganisationsEinheit) {
-        const oe = createOrganisation(organisationseinheit);
-        if (!!this.organisationseinheiten[oe.id]) {
-            this.log.logAction('update', 'organisationseinheit', oe.id);
-        } else {
-            this.log.logAction('create', 'organisationseinheit', oe.id);
-        }
-        this.organisationseinheiten[oe.id] = oe;
-    }
+    // addOrganisationsEinheit(organisationseinheit: RestOrganisationsEinheit) {
+    //     const oe = createOrganisation(organisationseinheit);
+    //     if (!!this.organisationseinheiten[oe.id]) {
+    //         this.log.logAction('update', 'organisationseinheit', oe.id);
+    //     } else {
+    //         this.log.logAction('create', 'organisationseinheit', oe.id);
+    //     }
+    //     this.organisationseinheiten[oe.id] = oe;
+    // }
 
-    removeOrganisationseinheit(id: string) {
-        if (this.organisationseinheiten[id]) {
-            delete this.organisationseinheiten[id];
-            this.log.logAction('delete', 'organisationseinheit ', id, 'failed');
-        } else {
-            this.log.logAction('delete', 'organisationseinheit', id, 'failed');
-        }
+    // removeOrganisationseinheit(id: string) {
+    //     if (this.organisationseinheiten[id]) {
+    //         delete this.organisationseinheiten[id];
+    //         this.log.logAction('delete', 'organisationseinheit ', id, 'failed');
+    //     } else {
+    //         this.log.logAction('delete', 'organisationseinheit', id, 'failed');
+    //     }
 
-    }
+    // }
     
     addZustaendigkeit(zustaendigkeit: RestZustaendigkeitTransferObjekt) {
         const zust = createZustaendigkeit(zustaendigkeit);
         if (zust.zustaendigkeitsSchema === 'ZustaendigkeitOrganisationseinheit') {
             if (!this.leistungen[zust.leistungID]) {
                 this.log.logAction('add', 'zustaendigkeit', zust.id, 'failed / missing leistung ' + zust.leistungID);
-            } else if (!this.organisationseinheiten[zust.uebergeordnetesObjektID]) {
-                this.log.logAction('add', 'zustaendigkeit', zust.id, 'failed / missing oe ' + zust.uebergeordnetesObjektID);
+            // } else if (!this.organisationseinheiten[zust.uebergeordnetesObjektID]) {
+            //     this.log.logAction('add', 'zustaendigkeit', zust.id, 'failed / missing oe ' + zust.uebergeordnetesObjektID);
             } else {
                 if (!!this.zustaendigkeiten[zust.id]) {
                     this.log.logAction('update', 'zustaendigkeit', zust.id)
@@ -177,18 +177,18 @@ export class Storage {
         }
     }
 
-    removeOrphanedZustaendigkeit() {
-        console.log('Removing orphans');
-        Object.keys(this.zustaendigkeiten).forEach(key => {
-            if (!this.leistungen[this.zustaendigkeiten[key].leistungID]) {
-                delete this.zustaendigkeiten[key];
-                this.log.logAction('delete orpan / leistung', 'zustaendigkeit', key);
-            }
-            if (!this.organisationseinheiten[this.zustaendigkeiten[key].uebergeordnetesObjektID]) {
-                delete this.zustaendigkeiten[key];
-                this.log.logAction('delete orpan / organisationseinheit', 'zustaendigkeit', key);
-            }
-        });
-        console.log('Finished removing Orphans');
-    } 
+    // removeOrphanedZustaendigkeit() {
+    //     console.log('Removing orphans');
+    //     Object.keys(this.zustaendigkeiten).forEach(key => {
+    //         if (!this.leistungen[this.zustaendigkeiten[key].leistungID]) {
+    //             delete this.zustaendigkeiten[key];
+    //             this.log.logAction('delete orpan / leistung', 'zustaendigkeit', key);
+    //         }
+    //         if (!this.organisationseinheiten[this.zustaendigkeiten[key].uebergeordnetesObjektID]) {
+    //             delete this.zustaendigkeiten[key];
+    //             this.log.logAction('delete orpan / organisationseinheit', 'zustaendigkeit', key);
+    //         }
+    //     });
+    //     console.log('Finished removing Orphans');
+    // } 
 }
