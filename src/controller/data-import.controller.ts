@@ -38,6 +38,7 @@ export class DataImport {
         let xmlContent = (result.data['xzufiObjekte'] as string);
         return {
             url: result.data['naechsteAnfrageUrl'] as string,
+            nextIndex: result.data['naechsterIndex'] as number,
             complete: result.data['vollstaendig'] as boolean,
             xmlContent,
         };
@@ -45,7 +46,7 @@ export class DataImport {
     
     getData = async () => {
         const startTime = Date.now();
-        let content = {complete: false, url: this.storage.startURL, xmlContent: ''};
+        let content = {complete: false, nextIndex: 0, url: this.storage.startURL, xmlContent: ''};
         while(!content.complete) {
             console.log(this.ctr++, content.url);
             this.log.logAction('fetching', 'url #' + this.ctr, content.url);
@@ -118,7 +119,7 @@ export class DataImport {
         console.log(
             'Minuten:', Math.round((Date.now().valueOf() - startTime) / 6000) / 10,
         );
-        this.storage.removeOrphanedZustaendigkeit();
+        // this.storage.removeOrphanedZustaendigkeit();
         this.storage.saveData(content.url);
         console.log('Minuten:', Math.round((Date.now().valueOf() - startTime) / 6000) / 10);
     }
