@@ -1,4 +1,5 @@
 import fs from 'fs';
+import bsplit from 'buffer-split';
 import { CodeListEntry } from '../model/code-list-entry.model';
 import { CodeList } from '../model/code-list.model';
 import { createLeistung, ILeistung } from '../model/leistung.interface';
@@ -38,8 +39,10 @@ export class Storage {
             // const oe = JSON.parse(fs.readFileSync(this.oeFile).toString()) as Organisation[];
             // oe.forEach(o => this.organisationseinheiten[o.id] = o);
             console.log(this.zustFile);
-            const zu = fs.readFileSync(this.zustFile).toString().split('\n');
-            zu.forEach((z, i) => {
+            const zuBuff = fs.readFileSync(this.zustFile);
+            const delim = Buffer.from('\n');
+            const zu = bsplit(zuBuff, delim);
+            zu.map(z => z.toString()).forEach((z, i) => {
                 if (i > 0 && z.trim() !== '') {
                     const values = z.split('\t');
                     const zust: Zustaendigkeit = {
