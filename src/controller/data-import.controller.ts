@@ -71,7 +71,7 @@ export class DataImport {
                             this.storage.addLeistung(entry['leistung'])
                             break;
                         case 'organisationseinheit':
-                            // this.storage.addOrganisationsEinheit(entry['organisationseinheit']);
+                            this.storage.addOrganisationsEinheit(entry['organisationseinheit']);
                             break;
                         case 'zustaendigkeitTransferObjekt':
                             this.storage.addZustaendigkeit(entry[Object.keys(entry)[0]])
@@ -100,7 +100,7 @@ export class DataImport {
                             this.storage.removeLeistung(id);
                             break;
                         case 'Organisationseinheit':
-                            // this.storage.removeOrganisationseinheit(id);
+                            this.storage.removeOrganisationseinheit(id);
                             break;
                         case 'LeistungSpezialisierung':
                             break;

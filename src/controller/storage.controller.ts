@@ -1,21 +1,21 @@
 import fs from 'fs';
 import bsplit from 'buffer-split';
 import { createLeistung, ILeistung } from '../model/leistung.interface';
-// import { createOrganisation, Organisation } from '../model/organisation.model';
+import { createOrganisation, Organisation } from '../model/organisation.model';
 import { RestLeistung } from '../model/rest/leistung.model';
-// import { RestOrganisationsEinheit } from '../model/rest/organisationseinheit.model';
+import { RestOrganisationsEinheit } from '../model/rest/organisationseinheit.model';
 import { RestZustaendigkeitTransferObjekt } from '../model/rest/zustaendigkeit.model';
 import { createZustaendigkeit, Zustaendigkeit } from '../model/zustaendigkeitstransferobjekt.model';
 import { Logging } from './logging.controller';
 
 export class Storage {
     private leistungen: {[key: string]: ILeistung} = {};
-    // private organisationseinheiten: {[key: string]: Organisation} = {};
+    private organisationseinheiten: {[key: string]: Organisation} = {};
     private zustaendigkeiten: {[key: string]: Zustaendigkeit} = {};
     private serviceZustaendigkeiten: {[key: string]: Zustaendigkeit} = {};
     private nextUrlSave = '../nexturl.txt';
     private leistungFile = '../leistungen.json';
-    // private oeFile = '../organisationseinheiten.json';
+    private oeFile = '../organisationseinheiten.json';
     private zustFile = '../zustaendigkeiten.csv';
     private servcieZustFile = '../service-zustaendigkeiten.csv';
     private log = Logging.getInstance();
@@ -29,9 +29,9 @@ export class Storage {
             console.log(this.leistungFile);
             const la = JSON.parse(fs.readFileSync(this.leistungFile).toString()) as ILeistung[];
             la.forEach(l => this.leistungen[l.id] = l);
-            // console.log(this.oeFile);
-            // const oe = JSON.parse(fs.readFileSync(this.oeFile).toString()) as Organisation[];
-            // oe.forEach(o => this.organisationseinheiten[o.id] = o);
+            console.log(this.oeFile);
+            const oe = JSON.parse(fs.readFileSync(this.oeFile).toString()) as Organisation[];
+            oe.forEach(o => this.organisationseinheiten[o.id] = o);
             console.log(this.zustFile);
             let zuBuff = fs.readFileSync(this.zustFile);
             let delim = Buffer.from('\n');
@@ -78,8 +78,8 @@ export class Storage {
         try {
             console.log(this.leistungFile);
             fs.writeFileSync(this.leistungFile, JSON.stringify(Object.values(this.leistungen)));
-            // console.log(this.oeFile);
-            // fs.writeFileSync(this.oeFile, JSON.stringify(Object.values(this.organisationseinheiten)));
+            console.log(this.oeFile);
+            fs.writeFileSync(this.oeFile, JSON.stringify(Object.values(this.organisationseinheiten)));
             this.writeZustaendigkeiten();
             console.log(this.nextUrlSave);
             fs.writeFileSync(this.nextUrlSave, nextUrl);
@@ -121,7 +121,7 @@ export class Storage {
         this.writeOrAppend(this.servcieZustFile, content, round);
     }
 
-    writeOrAppend(fileName: string, content: string, part: number) {
+    private writeOrAppend(fileName: string, content: string, part: number) {
         if (part === 0) {
             fs.writeFileSync(fileName, content);
         } else {
@@ -149,25 +149,25 @@ export class Storage {
 
     }
 
-    // addOrganisationsEinheit(organisationseinheit: RestOrganisationsEinheit) {
-    //     const oe = createOrganisation(organisationseinheit);
-    //     if (!!this.organisationseinheiten[oe.id]) {
-    //         this.log.logAction('update', 'organisationseinheit', oe.id);
-    //     } else {
-    //         this.log.logAction('create', 'organisationseinheit', oe.id);
-    //     }
-    //     this.organisationseinheiten[oe.id] = oe;
-    // }
+    addOrganisationsEinheit(organisationseinheit: RestOrganisationsEinheit) {
+        const oe = createOrganisation(organisationseinheit);
+        if (!!this.organisationseinheiten[oe.id]) {
+            this.log.logAction('update', 'organisationseinheit', oe.id);
+        } else {
+            this.log.logAction('create', 'organisationseinheit', oe.id);
+        }
+        this.organisationseinheiten[oe.id] = oe;
+    }
 
-    // removeOrganisationseinheit(id: string) {
-    //     if (this.organisationseinheiten[id]) {
-    //         delete this.organisationseinheiten[id];
-    //         this.log.logAction('delete', 'organisationseinheit ', id, 'failed');
-    //     } else {
-    //         this.log.logAction('delete', 'organisationseinheit', id, 'failed');
-    //     }
+    removeOrganisationseinheit(id: string) {
+        if (this.organisationseinheiten[id]) {
+            delete this.organisationseinheiten[id];
+            this.log.logAction('delete', 'organisationseinheit ', id, 'failed');
+        } else {
+            this.log.logAction('delete', 'organisationseinheit', id, 'failed');
+        }
 
-    // }
+    }
     
     addZustaendigkeit(zustaendigkeit: RestZustaendigkeitTransferObjekt) {
         const zust = createZustaendigkeit(zustaendigkeit);

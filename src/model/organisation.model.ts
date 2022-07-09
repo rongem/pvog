@@ -10,9 +10,9 @@ export interface Organisation {
         ort: string;
         bundesland: string;
         gemeinde: string;
-        gemeindeName: string;
+        // gemeindeName: string;
         ars: string;
-        arsName: string;
+        // arsName: string;
     }[];
 }
 
@@ -32,9 +32,9 @@ export const createOrganisation = (orgEinheit: RestOrganisationsEinheit): Organi
             ort: anschrift.ort,
             bundesland: anschrift.verwaltungspolitischeKodierung?.bundesland?.code,
             gemeinde: anschrift.verwaltungspolitischeKodierung?.gemeindeschluessel?.code,
-            gemeindeName: anschrift.verwaltungspolitischeKodierung?.gemeindeschluessel?.name,
+            // gemeindeName: anschrift.verwaltungspolitischeKodierung?.gemeindeschluessel?.name,
             ars: anschrift.verwaltungspolitischeKodierung?.regionalschluessel?.code,
-            arsName: anschrift.verwaltungspolitischeKodierung?.regionalschluessel?.name,
+            // arsName: anschrift.verwaltungspolitischeKodierung?.regionalschluessel?.name,
         }))
     };
 };
