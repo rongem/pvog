@@ -1,7 +1,5 @@
 import fs from 'fs';
 import bsplit from 'buffer-split';
-import { CodeListEntry } from '../model/code-list-entry.model';
-import { CodeList } from '../model/code-list.model';
 import { createLeistung, ILeistung } from '../model/leistung.interface';
 // import { createOrganisation, Organisation } from '../model/organisation.model';
 import { RestLeistung } from '../model/rest/leistung.model';
@@ -11,16 +9,15 @@ import { createZustaendigkeit, Zustaendigkeit } from '../model/zustaendigkeitstr
 import { Logging } from './logging.controller';
 
 export class Storage {
-    private typisierungen: CodeList = {};
-    private typisierungChanged = false;
     private leistungen: {[key: string]: ILeistung} = {};
     // private organisationseinheiten: {[key: string]: Organisation} = {};
     private zustaendigkeiten: {[key: string]: Zustaendigkeit} = {};
+    private serviceZustaendigkeiten: {[key: string]: Zustaendigkeit} = {};
     private nextUrlSave = '../nexturl.txt';
     private leistungFile = '../leistungen.json';
     // private oeFile = '../organisationseinheiten.json';
-    private typFile = '../typisierungen.json';
     private zustFile = '../zustaendigkeiten.csv';
+    private servcieZustFile = '../service-zustaendigkeiten.csv';
     private log = Logging.getInstance();
     public startURL = '';
 
@@ -32,16 +29,13 @@ export class Storage {
             console.log(this.leistungFile);
             const la = JSON.parse(fs.readFileSync(this.leistungFile).toString()) as ILeistung[];
             la.forEach(l => this.leistungen[l.id] = l);
-            console.log(this.typFile);
-            const ty = JSON.parse(fs.readFileSync(this.typFile).toString()) as CodeListEntry[];
-            ty.forEach(t => this.typisierungen[t.code] = t);
             // console.log(this.oeFile);
             // const oe = JSON.parse(fs.readFileSync(this.oeFile).toString()) as Organisation[];
             // oe.forEach(o => this.organisationseinheiten[o.id] = o);
             console.log(this.zustFile);
-            const zuBuff = fs.readFileSync(this.zustFile);
-            const delim = Buffer.from('\n');
-            const zu = bsplit(zuBuff, delim);
+            let zuBuff = fs.readFileSync(this.zustFile);
+            let delim = Buffer.from('\n');
+            let zu = bsplit(zuBuff, delim);
             zu.map(z => z.toString()).forEach((z, i) => {
                 if (i > 0 && z.trim() !== '') {
                     const values = z.split('\t');
@@ -53,6 +47,23 @@ export class Storage {
                         zustaendigkeitsSchema: 'ZustaendigkeitOrganisationseinheit',
                     };
                     this.zustaendigkeiten[zust.id] = zust;
+                }
+            });
+            console.log(this.servcieZustFile);
+            zuBuff = fs.readFileSync(this.zustFile);
+            delim = Buffer.from('\n');
+            zu = bsplit(zuBuff, delim);
+            zu.map(z => z.toString()).forEach((z, i) => {
+                if (i > 0 && z.trim() !== '') {
+                    const values = z.split('\t');
+                    const zust: Zustaendigkeit = {
+                        id: values[0],
+                        leistungID: values[1],
+                        uebergeordnetesObjektID: values[2],
+                        gebietId: values[3],
+                        zustaendigkeitsSchema: 'ZustaendigkeitOnlinedienst',
+                    };
+                    this.serviceZustaendigkeiten[zust.id] = zust;
                 }
             });
         } else {
@@ -69,31 +80,45 @@ export class Storage {
             fs.writeFileSync(this.leistungFile, JSON.stringify(Object.values(this.leistungen)));
             // console.log(this.oeFile);
             // fs.writeFileSync(this.oeFile, JSON.stringify(Object.values(this.organisationseinheiten)));
-            if (this.typisierungChanged) {
-                console.log(this.typFile);
-                fs.writeFileSync(this.typFile, JSON.stringify(Object.values(this.typisierungen)));
-                this.typisierungChanged = false;
-            }
-            console.log(this.zustFile);
-            const keys = Object.keys(this.zustaendigkeiten);
-            let content = 'id\tleistungID\tuebergeordnetesObjektID\tgebietID\n';
-            let round = 0;
-            keys.forEach((key, i) => {
-                const element = this.zustaendigkeiten[key];
-                content += element.id + '\t' + element.leistungID + '\t' + element.uebergeordnetesObjektID + '\t' + element.gebietId + '\n';
-                if (Math.trunc(i / 2000000) > round) {
-                    this.writeOrAppend(this.zustFile, content, round);
-                    round++;
-                    content = '';
-                }
-            });
-            this.writeOrAppend(this.zustFile, content, round);
+            this.writeZustaendigkeiten();
             console.log(this.nextUrlSave);
             fs.writeFileSync(this.nextUrlSave, nextUrl);
         } catch (error) {
             throw error;
         }
         console.log('done');
+    }
+
+    private writeZustaendigkeiten() {
+        const headers = 'id\tleistungID\tuebergeordnetesObjektID\tgebietID\n';
+        console.log(this.zustFile);
+        let keys = Object.keys(this.zustaendigkeiten);
+        let content = headers;
+        let round = 0;
+        keys.forEach((key, i) => {
+            const element = this.zustaendigkeiten[key];
+            content += element.id + '\t' + element.leistungID + '\t' + element.uebergeordnetesObjektID + '\t' + element.gebietId + '\n';
+            if (Math.trunc(i / 2000000) > round) {
+                this.writeOrAppend(this.zustFile, content, round);
+                round++;
+                content = '';
+            }
+        });
+        this.writeOrAppend(this.zustFile, content, round);
+        console.log(this.servcieZustFile);
+        keys = Object.keys(this.serviceZustaendigkeiten);
+        content = headers;
+        round = 0;
+        keys.forEach((key, i) => {
+            const element = this.serviceZustaendigkeiten[key];
+            content += element.id + '\t' + element.leistungID + '\t' + element.uebergeordnetesObjektID + '\t' + element.gebietId + '\n';
+            if (Math.trunc(i / 2000000) > round) {
+                this.writeOrAppend(this.servcieZustFile, content, round);
+                round++;
+                content = '';
+            }
+        });
+        this.writeOrAppend(this.servcieZustFile, content, round);
     }
 
     writeOrAppend(fileName: string, content: string, part: number) {
@@ -112,13 +137,6 @@ export class Storage {
             this.log.logAction('create', 'leistung', leistung.id);
         }
         this.leistungen[leistung.id] = leistung;
-        if (leistung.typisierung && !this.typisierungen[leistung.typisierung]) {
-            this.typisierungChanged = true;
-            this.typisierungen[leistung.typisierung] = {
-                code: leistung.typisierung,
-                name: restLeistung.typisierung.name
-            };
-        }
     }
 
     removeLeistung(id: string) {
@@ -153,21 +171,30 @@ export class Storage {
     
     addZustaendigkeit(zustaendigkeit: RestZustaendigkeitTransferObjekt) {
         const zust = createZustaendigkeit(zustaendigkeit);
-        if (zust.zustaendigkeitsSchema === 'ZustaendigkeitOrganisationseinheit') {
-            if (!this.leistungen[zust.leistungID]) {
-                this.log.logAction('add', 'zustaendigkeit', zust.id, 'failed / missing leistung ' + zust.leistungID);
-            // } else if (!this.organisationseinheiten[zust.uebergeordnetesObjektID]) {
-            //     this.log.logAction('add', 'zustaendigkeit', zust.id, 'failed / missing oe ' + zust.uebergeordnetesObjektID);
-            } else {
-                if (!!this.zustaendigkeiten[zust.id]) {
-                    this.log.logAction('update', 'zustaendigkeit', zust.id)
-                } else {
-                    this.log.logAction('create', 'zustaendigkeit', zust.id)
-                }
-                this.zustaendigkeiten[zust.id] = zust;
-            }
+        if (!this.leistungen[zust.leistungID]) {
+            this.log.logAction('add', zust.zustaendigkeitsSchema, zust.id, 'failed / missing leistung ' + zust.leistungID);
         } else {
-            this.log.logAction('ignore', 'zustaendigkeit', zust.id + " as " + zust.zustaendigkeitsSchema);
+            switch (zust.zustaendigkeitsSchema) {
+                case 'ZustaendigkeitOrganisationseinheit':
+                    if (!!this.zustaendigkeiten[zust.id]) {
+                        this.log.logAction('update', 'zustaendigkeit', zust.id)
+                    } else {
+                        this.log.logAction('create', 'zustaendigkeit', zust.id)
+                    }
+                    this.zustaendigkeiten[zust.id] = zust;
+                    break;
+                case 'ZustaendigkeitOnlinedienst':
+                    if (!!this.serviceZustaendigkeiten[zust.id]) {
+                        this.log.logAction('update', 'servicezustaendigkeit', zust.id)
+                    } else {
+                        this.log.logAction('create', 'servicezustaendigkeit', zust.id)
+                    }
+                    this.serviceZustaendigkeiten[zust.id] = zust;
+                    break;
+                default:
+                    this.log.logAction('ignore', 'zustaendigkeit', zust.id + " as " + zust.zustaendigkeitsSchema);
+                    break;
+            }
         }
     }
     
@@ -175,23 +202,12 @@ export class Storage {
         if (this.zustaendigkeiten[id]) {
             delete this.zustaendigkeiten[id];
             this.log.logAction('delete', 'zustaendigkeit', id);
+        } else if (this.serviceZustaendigkeiten[id]) {
+            delete this.serviceZustaendigkeiten[id];
+            this.log.logAction('delete', 'servicezustaendigkeit', id);
         } else {
             this.log.logAction('delete', 'zustaendigkeit', id, 'failed');
         }
     }
 
-    // removeOrphanedZustaendigkeit() {
-    //     console.log('Removing orphans');
-    //     Object.keys(this.zustaendigkeiten).forEach(key => {
-    //         if (!this.leistungen[this.zustaendigkeiten[key].leistungID]) {
-    //             delete this.zustaendigkeiten[key];
-    //             this.log.logAction('delete orpan / leistung', 'zustaendigkeit', key);
-    //         }
-    //         if (!this.organisationseinheiten[this.zustaendigkeiten[key].uebergeordnetesObjektID]) {
-    //             delete this.zustaendigkeiten[key];
-    //             this.log.logAction('delete orpan / organisationseinheit', 'zustaendigkeit', key);
-    //         }
-    //     });
-    //     console.log('Finished removing Orphans');
-    // } 
 }
