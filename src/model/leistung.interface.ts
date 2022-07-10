@@ -18,6 +18,7 @@ const getMultiLanguage = (b: { text: string; _languageCode: string; }): { text: 
 export const createLeistung = (leistung: RestLeistung): ILeistung => ({
     id: createID(leistung.id),
     informationsbereichSDG: leistung.informationsbereichSDG?.code,
+    SDG: leistung.informationsbereichSDG ? 'Ja' : 'Nein',
     kategorie: !!leistung.kategorie ? {
         bezeichnung: !leistung.kategorie.bezeichnung ? [] :
             typeof leistung.kategorie.bezeichnung.map === 'function' ? leistung.kategorie.bezeichnung.map(getMultiLanguage) :
@@ -51,12 +52,15 @@ export const createLeistung = (leistung: RestLeistung): ILeistung => ({
         } : undefined,
     } : undefined,
     typisierung: leistung.typisierung.code,
+    anzahlServices: 0,
+    anzahlOEs: 0,
     zuletztGeandert: leistung.versionsinformation?.geaendertDatumZeit,
 });
 
 export interface ILeistung {
     id: string;
     informationsbereichSDG?: string;
+    SDG: 'Ja' | 'Nein';
     kategorie?: {
         bezeichnung: MultiLanguageText[];
         beschreibung: MultiLanguageText[];
@@ -86,6 +90,8 @@ export interface ILeistung {
         verrichtungsDetail?: MultiLanguageText;
     };
     typisierung: string;
+    anzahlServices: number;
+    anzahlOEs: number;
     zuletztGeandert: string;
 }
 

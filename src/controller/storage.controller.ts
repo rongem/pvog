@@ -50,7 +50,7 @@ export class Storage {
                 }
             });
             console.log(this.servcieZustFile);
-            zuBuff = fs.readFileSync(this.zustFile);
+            zuBuff = fs.readFileSync(this.servcieZustFile);
             delim = Buffer.from('\n');
             zu = bsplit(zuBuff, delim);
             zu.map(z => z.toString()).forEach((z, i) => {
@@ -180,6 +180,7 @@ export class Storage {
                         this.log.logAction('update', 'zustaendigkeit', zust.id)
                     } else {
                         this.log.logAction('create', 'zustaendigkeit', zust.id)
+                        this.leistungen[zust.leistungID].anzahlOEs++;
                     }
                     this.zustaendigkeiten[zust.id] = zust;
                     break;
@@ -188,6 +189,7 @@ export class Storage {
                         this.log.logAction('update', 'servicezustaendigkeit', zust.id)
                     } else {
                         this.log.logAction('create', 'servicezustaendigkeit', zust.id)
+                        this.leistungen[zust.leistungID].anzahlServices++;
                     }
                     this.serviceZustaendigkeiten[zust.id] = zust;
                     break;
@@ -200,9 +202,11 @@ export class Storage {
     
     removeZustaendigkeit(id: string) {
         if (this.zustaendigkeiten[id]) {
+            this.leistungen[this.zustaendigkeiten[id].leistungID].anzahlOEs--;
             delete this.zustaendigkeiten[id];
             this.log.logAction('delete', 'zustaendigkeit', id);
         } else if (this.serviceZustaendigkeiten[id]) {
+            this.leistungen[this.serviceZustaendigkeiten[id].leistungID].anzahlServices--;
             delete this.serviceZustaendigkeiten[id];
             this.log.logAction('delete', 'servicezustaendigkeit', id);
         } else {
