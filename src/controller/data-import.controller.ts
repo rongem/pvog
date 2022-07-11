@@ -35,7 +35,10 @@ export class DataImport {
     getNextContent = async (currentId: number, url: string): Promise<Content> => {
         let fileContent = this.storage.loadContent(currentId);
         if (fileContent) {
-            return fileContent;
+            const rootNode = Object.keys(fileContent.content).find(n => n !== '?xml')!;
+            if (fileContent.content[rootNode]) {
+                return fileContent;
+            }
         }
         if (!this.token || this.token.expired) {
             this.token = await this.getToken();
@@ -51,14 +54,16 @@ export class DataImport {
             nextIndex: result.data['naechsterIndex'] as number,
             url: result.data['naechsteAnfrageUrl'] as string,
         };
+        console.log(fileContent.complete);
         this.storage.saveContent(content, currentId, fileContent.nextIndex, fileContent.url);
         return fileContent;
     }
     
     getData = async () => {
         const startTime = Date.now();
-        let content: Content = {complete: false, nextIndex: 0, url: this.storage.startURL, content: undefined, fromFile: false};
+        let content: Content = {complete: false, nextIndex: this.storage.nextIndex, url: this.storage.startURL, content: undefined, fromFile: false};
         while(!content.complete) {
+            const orphanedDeletions: number[] = [];
             console.log(this.ctr++, content.url);
             const currentId = content.nextIndex;
             this.log.logAction('fetching', 'url #' + this.ctr, content.url);
@@ -94,11 +99,13 @@ export class DataImport {
                         if (typeof deletables.forEach !== 'function') {
                             deletables = [deletables as any];
                         }
-                        deletables.forEach(entry => {
+                        deletables.forEach((entry, index) => {
                             const id = createID(entry.id);
                             switch(entry._klasse) {
                                 case 'Zustaendigkeit':
-                                    this.storage.removeZustaendigkeit(id);
+                                    if (!this.storage.removeZustaendigkeit(id)) {
+                                        orphanedDeletions.push(index);
+                                    }
                                     break;
                                 case 'Leistung':
                                     this.storage.removeLeistung(id);
@@ -115,6 +122,10 @@ export class DataImport {
                                     break;
                             }
                         });
+                    }
+                    if (orphanedDeletions.length > 0) {
+                        orphanedDeletions.reverse().forEach(d => deletables.splice(d, 1));
+                        this.storage.saveContent(content, currentId, content.nextIndex, content.url);
                     }
                 }
             }

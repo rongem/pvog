@@ -94,6 +94,8 @@ export class Storage {
 
     saveContent = (content: any, index: number, nextIndex: number, url: string) => {
         const fileName = `../pvog-backup/${index}.json`;
+        const rootNode = Object.keys(content.content).find(n => n !== '?xml')!;
+        if (!content[rootNode]) return;
         fs.writeFile(fileName, JSON.stringify({
             content,
             complete: false,
@@ -228,12 +230,15 @@ export class Storage {
             this.leistungen[this.zustaendigkeiten[id].leistungID].anzahlOEs--;
             delete this.zustaendigkeiten[id];
             this.log.logAction('delete', 'zustaendigkeit', id);
+            return true;
         } else if (this.serviceZustaendigkeiten[id]) {
             this.leistungen[this.serviceZustaendigkeiten[id].leistungID].anzahlServices--;
             delete this.serviceZustaendigkeiten[id];
             this.log.logAction('delete', 'servicezustaendigkeit', id);
+            return true;
         } else {
             this.log.logAction('delete', 'zustaendigkeit', id, 'failed');
+            return false;
         }
     }
 
