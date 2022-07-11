@@ -1,6 +1,7 @@
 import { RestLeistung } from './rest/leistung.model';
 import { MultiLanguageText } from './ml-text.model';
 import { createID } from './id.model';
+import { AnalyzedText } from './rest/analyzed-text.model';
 
 const analyzeText = (i: MultiLanguageText): { wortAnzahl: number; zeichenAnzahl: number; languageCode: string; } => {
     const cleanedText = i.text.replace(/<\/?[^>]+(>|$)/g, '');
@@ -10,9 +11,9 @@ const analyzeText = (i: MultiLanguageText): { wortAnzahl: number; zeichenAnzahl:
         languageCode: i._languageCode!,
     };
 };
-const getMultiLanguage = (b: { text: string; _languageCode: string; }): { text: string; languageCode: string; } => ({
+const getMultiLanguage = (b: MultiLanguageText): { text: string; languageCode: string; } => ({
     text: b.text,
-    languageCode: b._languageCode,
+    languageCode: b._languageCode!,
 });
 
 export const createLeistung = (leistung: RestLeistung): ILeistung => ({
@@ -20,19 +21,14 @@ export const createLeistung = (leistung: RestLeistung): ILeistung => ({
     informationsbereichSDG: leistung.informationsbereichSDG?.code,
     SDG: leistung.informationsbereichSDG ? 'Ja' : 'Nein',
     kategorie: !!leistung.kategorie ? {
-        bezeichnung: !leistung.kategorie.bezeichnung ? [] :
-            typeof leistung.kategorie.bezeichnung.map === 'function' ? leistung.kategorie.bezeichnung.map(getMultiLanguage) :
-            [getMultiLanguage(leistung.kategorie.bezeichnung as any)],
-        beschreibung: !leistung.kategorie.beschreibung ? [] :
-            typeof leistung.kategorie.beschreibung.map === 'function' ? leistung.kategorie.beschreibung.map(getMultiLanguage) :
-            [getMultiLanguage(leistung.kategorie.beschreibung as any)],
+        bezeichnung: leistung.kategorie.bezeichnung.map(getMultiLanguage),
+        beschreibung: leistung.kategorie.beschreibung.map(analyzeText),
         klasse: leistung.kategorie.klasse?.id.text,
     } : undefined,
     modulText: leistung.modulText?.map(t => ({
-        leikaTextModul: t.leikaTextmodul.code,
+        leikaTextModul: t.leikaTextmodul?.code,
         position: t.positionDarstellung,
-        inhalt: t.inhalt && typeof t.inhalt?.map === 'function' ? [...t.inhalt].map(analyzeText) ?? [] :
-            !!t.inhalt ? [t.inhalt as unknown as MultiLanguageText].map(analyzeText) : [],
+        inhalt: t.inhalt.map(analyzeText),
     })) ?? [],
     struktur: !!leistung.struktur ? {
         leistungsobjekt: !!leistung.struktur.leistungsobjektID ? {
@@ -40,16 +36,13 @@ export const createLeistung = (leistung: RestLeistung): ILeistung => ({
             schemeID: leistung.struktur.leistungsobjektID._schemeID,
             schemeName: leistung.struktur.leistungsobjektID._schemeName,
         } : undefined,
-        type: leistung.struktur._type,
+        type: leistung.struktur._type.replace('xzufi:Leistungsstruktur', ''),
         verrichtung: !!leistung.struktur.verrichtung ? {
             code: leistung.struktur.verrichtung.verrichtungLeiKa.code,
             name: leistung.struktur.verrichtung.verrichtungLeiKa.name,
             listUri: leistung.struktur.verrichtung.verrichtungLeiKa._listURI,
         } : undefined,
-        verrichtungsDetail: leistung.struktur.verrichtungsdetail ? {
-            text: leistung.struktur.verrichtungsdetail?.text,
-            languageCode: leistung.struktur.verrichtungsdetail?._languageCode,
-        } : undefined,
+        verrichtungsDetail: leistung.struktur.verrichtungsdetail.map(getMultiLanguage),
     } : undefined,
     typisierung: leistung.typisierung.code,
     anzahlServices: 0,
@@ -63,15 +56,11 @@ export interface ILeistung {
     SDG: 'Ja' | 'Nein';
     kategorie?: {
         bezeichnung: MultiLanguageText[];
-        beschreibung: MultiLanguageText[];
+        beschreibung: AnalyzedText[];
         klasse: string;
     };
     modulText: {
-        inhalt: {
-            wortAnzahl: number;
-            zeichenAnzahl: number;
-            languageCode: string;
-        }[];
+        inhalt: AnalyzedText[];
         leikaTextModul: string;
         position: string;
     }[];
@@ -87,7 +76,7 @@ export interface ILeistung {
             name: string;
             listUri: string;
         };
-        verrichtungsDetail?: MultiLanguageText;
+        verrichtungsDetail: MultiLanguageText[];
     };
     typisierung: string;
     anzahlServices: number;

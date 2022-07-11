@@ -7,6 +7,7 @@ import { RestOrganisationsEinheit } from '../model/rest/organisationseinheit.mod
 import { RestZustaendigkeitTransferObjekt } from '../model/rest/zustaendigkeit.model';
 import { createZustaendigkeit, Zustaendigkeit } from '../model/zustaendigkeitstransferobjekt.model';
 import { Logging } from './logging.controller';
+import { Content } from '../model/content.model';
 
 export class Storage {
     private leistungen: {[key: string]: ILeistung} = {};
@@ -87,6 +88,26 @@ export class Storage {
             throw error;
         }
         console.log('done');
+    }
+
+    saveContent = (content: any, index: number, nextIndex: number, url: string) => {
+        const fileName = `../pvog-backup/${index}.json`;
+        fs.writeFile(fileName, JSON.stringify({
+            content,
+            complete: false,
+            fromFile: true,
+            nextIndex,
+            url,
+        }), () => console.log('Saved', fileName));
+    }
+
+    loadContent = (index: number): Content | null => {
+        const fileName = `../pvog-backup/${index}.json`;
+        if (fs.existsSync(fileName)) {
+            const contents = JSON.parse(fs.readFileSync(fileName).toString()) as Content;
+            return contents;
+        }
+        return null;
     }
 
     private writeZustaendigkeiten() {

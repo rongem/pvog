@@ -16,7 +16,7 @@ export interface RestLeistung {
                 _listURI: string,
               }
         },
-        verrichtungsdetail: MultiLanguageText,
+        verrichtungsdetail: MultiLanguageText[],
         _type: string
     },
     referenzLeiKa: {
