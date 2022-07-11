@@ -65,55 +65,57 @@ export class DataImport {
             content = await this.getNextContent(currentId, content.url);
             if (content.content) {
                 const rootNode = Object.keys(content.content).find(n => n !== '?xml')!;
-                let writables = content.content[rootNode]['schreibe'] as Array<any>;
-                let deletables = content.content[rootNode]['loesche'] as Array<any>;
-                if (writables) {
-                    writables.forEach(entry => {
-                        switch (Object.keys(entry)[0]) {
-                            case 'leistung':
-                                this.storage.addLeistung(entry['leistung']);
-                                break;
-                            case 'organisationseinheit':
-                                this.storage.addOrganisationsEinheit(entry['organisationseinheit']);
-                                break;
-                            case 'zustaendigkeitTransferObjekt':
-                                this.storage.addZustaendigkeit(entry[Object.keys(entry)[0]]);
-                                break;
-                            case 'spezialisierung':
-                                break;
-                            case 'onlinedienst':
-                                break;
-                            default:
-                                this.log.logAction('ignore', 'write object handlers', Object.keys(entry)[0], 'failed');
-                                break;
-                        }
-                    });
-                }
-                if (deletables) {
-                    if (typeof deletables.forEach !== 'function') {
-                        deletables = [deletables as any];
+                if (content.content[rootNode]) {
+                    let writables = content.content[rootNode]['schreibe'] as Array<any>;
+                    let deletables = content.content[rootNode]['loesche'] as Array<any>;
+                    if (writables) {
+                        writables.forEach(entry => {
+                            switch (Object.keys(entry)[0]) {
+                                case 'leistung':
+                                    this.storage.addLeistung(entry['leistung']);
+                                    break;
+                                case 'organisationseinheit':
+                                    this.storage.addOrganisationsEinheit(entry['organisationseinheit']);
+                                    break;
+                                case 'zustaendigkeitTransferObjekt':
+                                    this.storage.addZustaendigkeit(entry[Object.keys(entry)[0]]);
+                                    break;
+                                case 'spezialisierung':
+                                    break;
+                                case 'onlinedienst':
+                                    break;
+                                default:
+                                    this.log.logAction('ignore', 'write object handlers', Object.keys(entry)[0], 'failed');
+                                    break;
+                            }
+                        });
                     }
-                    deletables.forEach(entry => {
-                        const id = createID(entry.id);
-                        switch(entry._klasse) {
-                            case 'Zustaendigkeit':
-                                this.storage.removeZustaendigkeit(id);
-                                break;
-                            case 'Leistung':
-                                this.storage.removeLeistung(id);
-                                break;
-                            case 'Organisationseinheit':
-                                this.storage.removeOrganisationseinheit(id);
-                                break;
-                            case 'LeistungSpezialisierung':
-                                break;
-                            case 'Onlinedienst':
-                                break;
-                            default:
-                                this.log.logAction('ignore', 'delete object handlers', entry._klasse, 'failed');
-                                break;
+                    if (deletables) {
+                        if (typeof deletables.forEach !== 'function') {
+                            deletables = [deletables as any];
                         }
-                    });
+                        deletables.forEach(entry => {
+                            const id = createID(entry.id);
+                            switch(entry._klasse) {
+                                case 'Zustaendigkeit':
+                                    this.storage.removeZustaendigkeit(id);
+                                    break;
+                                case 'Leistung':
+                                    this.storage.removeLeistung(id);
+                                    break;
+                                case 'Organisationseinheit':
+                                    this.storage.removeOrganisationseinheit(id);
+                                    break;
+                                case 'LeistungSpezialisierung':
+                                    break;
+                                case 'Onlinedienst':
+                                    break;
+                                default:
+                                    this.log.logAction('ignore', 'delete object handlers', entry._klasse, 'failed');
+                                    break;
+                            }
+                        });
+                    }
                 }
             }
         }
@@ -126,6 +128,7 @@ export class DataImport {
 
     private sanitizeContent(content: any) {
         const rootNode = Object.keys(content).find(n => n !== '?xml')!;
+        if (!content[rootNode]) return;
         const nodes = Object.keys(content[rootNode]).filter(n => !['schreibe', 'loesche', 'nachrichtenkopf', '_produktbezeichnung', '_produkthersteller', '_xzufiVersion'].includes(n));
         if (nodes.length > 0) {
             this.log.logAction('Extracting', 'unknown node types', nodes.join(', '), 'failed');

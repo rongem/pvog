@@ -77,8 +77,7 @@ export class Storage {
         
     saveData = (nextUrl: string, nextId: number) => {
         console.log('saving files...');
-        fs.appendFileSync('../log.txt', this.log.logLines);
-        this.log.clearLog();
+        this.log.flushLog();
         try {
             console.log(this.leistungFile);
             fs.writeFileSync(this.leistungFile, JSON.stringify(Object.values(this.leistungen)));
