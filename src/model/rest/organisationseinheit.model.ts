@@ -6,7 +6,7 @@ export interface RestOrganisationsEinheit {
         name: {
             text: string;
             _languageCode: string;
-        }
+        }[];
     };
     anschrift: {
         ort: string;

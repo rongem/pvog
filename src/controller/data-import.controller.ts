@@ -1,8 +1,9 @@
 import axios from 'axios';
-import { XMLParser, X2jOptions} from "fast-xml-parser";
+import { XMLParser} from "fast-xml-parser";
 import { Content } from '../model/content.model';
 import { createID } from '../model/id.model';
 import { RestLeistung } from '../model/rest/leistung.model';
+import { RestOrganisationsEinheit } from '../model/rest/organisationseinheit.model';
 import { Token } from '../model/token.model';
 import { Logging } from './logging.controller';
 import { Storage } from './storage.controller';
@@ -32,7 +33,7 @@ export class DataImport {
     }
     
     getNextContent = async (currentId: number, url: string): Promise<Content> => {
-        const fileContent = this.storage.loadContent(currentId);
+        let fileContent = this.storage.loadContent(currentId);
         if (fileContent) {
             return fileContent;
         }
@@ -40,14 +41,18 @@ export class DataImport {
             this.token = await this.getToken();
         }
         const result = await axios.get(url, {headers: {'Authorization': this.token.authorization}});
-        let xmlContent = (result.data['xzufiObjekte'] as string);
-        return {
+        const xmlContent = (result.data['xzufiObjekte'] as string);
+        const content = this.parser.parse(xmlContent);
+        this.sanitizeContent(content);
+        fileContent = {
             complete: result.data['vollstaendig'] as boolean,
-            content: this.parser.parse(xmlContent),
+            content,
             fromFile: false,
             nextIndex: result.data['naechsterIndex'] as number,
             url: result.data['naechsteAnfrageUrl'] as string,
         };
+        this.storage.saveContent(content, currentId, fileContent.nextIndex, fileContent.url);
+        return fileContent;
     }
     
     getData = async () => {
@@ -60,21 +65,12 @@ export class DataImport {
             content = await this.getNextContent(currentId, content.url);
             if (content.content) {
                 const rootNode = Object.keys(content.content).find(n => n !== '?xml')!;
-                const nodes = Object.keys(content.content[rootNode]).filter(n =>
-                    !['schreibe', 'loesche', 'nachrichtenkopf', '_produktbezeichnung', '_produkthersteller', '_xzufiVersion'].includes(n));
-                if (nodes.length > 0) {
-                    this.log.logAction('Extracting', 'unknown node types', nodes.join(', '), 'failed');
-                }
-                let contents = content.content[rootNode]['schreibe'] as Array<any>;
-                let deletable = content.content[rootNode]['loesche'] as Array<any>;
-                if (contents) {
-                    if (typeof contents.forEach !== 'function') {
-                        contents = [contents as any];
-                    }
-                    contents.forEach(entry => {
+                let writables = content.content[rootNode]['schreibe'] as Array<any>;
+                let deletables = content.content[rootNode]['loesche'] as Array<any>;
+                if (writables) {
+                    writables.forEach(entry => {
                         switch (Object.keys(entry)[0]) {
                             case 'leistung':
-                                this.sanitizeLeistung(entry['leistung']);
                                 this.storage.addLeistung(entry['leistung']);
                                 break;
                             case 'organisationseinheit':
@@ -93,11 +89,11 @@ export class DataImport {
                         }
                     });
                 }
-                if (deletable) {
-                    if (typeof deletable.forEach !== 'function') {
-                        deletable = [deletable as any];
+                if (deletables) {
+                    if (typeof deletables.forEach !== 'function') {
+                        deletables = [deletables as any];
                     }
-                    deletable.forEach(entry => {
+                    deletables.forEach(entry => {
                         const id = createID(entry.id);
                         switch(entry._klasse) {
                             case 'Zustaendigkeit':
@@ -119,19 +115,52 @@ export class DataImport {
                         }
                     });
                 }
-                if (!content.fromFile) {
-                    this.storage.saveContent(contents, currentId, content.nextIndex, content.url);
-                }
-                if (this.ctr > 0 && this.ctr %100 === 0) {
-                    this.storage.saveData(content.url);
-                }
             }
         }
         console.log(
             'Minuten:', Math.round((Date.now().valueOf() - startTime) / 6000) / 10,
         );
-        this.storage.saveData(content.url);
+        this.storage.saveData(content.url, content.nextIndex);
         console.log('Minuten:', Math.round((Date.now().valueOf() - startTime) / 6000) / 10);
+    }
+
+    private sanitizeContent(content: any) {
+        const rootNode = Object.keys(content).find(n => n !== '?xml')!;
+        const nodes = Object.keys(content[rootNode]).filter(n => !['schreibe', 'loesche', 'nachrichtenkopf', '_produktbezeichnung', '_produkthersteller', '_xzufiVersion'].includes(n));
+        if (nodes.length > 0) {
+            this.log.logAction('Extracting', 'unknown node types', nodes.join(', '), 'failed');
+        }
+        let schreibe = content[rootNode]['schreibe'];
+        if (schreibe) {
+            if (typeof schreibe.forEach !== 'function') {
+                content[rootNode]['schreibe'] = [schreibe];
+                schreibe = content[rootNode]['schreibe'];
+            }
+            schreibe.forEach((entry: any) => {
+                switch (Object.keys(entry)[0]) {
+                    case 'leistung':
+                        this.sanitizeLeistung(entry['leistung']);
+                        break;
+                    case 'organisationseinheit':
+                        this.sanitizeOrganisationsEinheit(entry['organisationseinheit']);
+                        break;
+                    // case 'zustaendigkeitTransferObjekt':
+                    //     break;
+                    // case 'spezialisierung':
+                    //     break;
+                    // case 'onlinedienst':
+                    //     break;
+                    default:
+                        break;
+                }
+            });
+        }
+        const loesche = content[rootNode]['loesche'];
+        if (loesche) {
+            if (typeof loesche.forEach !== 'function') {
+                content[rootNode]['loesche'] = [loesche];
+            }
+        }
     }
 
     private sanitizeLeistung(restLeistung: RestLeistung) {
@@ -142,21 +171,31 @@ export class DataImport {
                 restLeistung.struktur.verrichtungsdetail = [restLeistung.struktur.verrichtungsdetail as any];
             }
         }
-        if (restLeistung.kategorie) {
-            if (!restLeistung.kategorie.bezeichnung) {
-                restLeistung.kategorie.bezeichnung = [];
-            } else if (typeof restLeistung.kategorie.bezeichnung.map !== 'function') {
-                restLeistung.kategorie.bezeichnung = [restLeistung.kategorie.bezeichnung as any];
-            }
-            if (!restLeistung.kategorie.beschreibung) {
-                restLeistung.kategorie.beschreibung = [];
-            } else if (typeof restLeistung.kategorie.beschreibung.map !== 'function') {
-                restLeistung.kategorie.beschreibung = [restLeistung.kategorie.beschreibung as any];
-            }
+        if (!restLeistung.kategorie) {
+            restLeistung.kategorie = [];
+        } else if (typeof restLeistung.kategorie.map !== 'function') {
+            restLeistung.kategorie = [restLeistung.kategorie as any];
         }
+        restLeistung.kategorie.forEach(kategorie => {
+            if (!kategorie.bezeichnung) {
+                kategorie.bezeichnung = [];
+            } else if (typeof kategorie.bezeichnung.map !== 'function') {
+                kategorie.bezeichnung = [kategorie.bezeichnung as any];
+            }
+            if (!kategorie.beschreibung) {
+                kategorie.beschreibung = [];
+            } else if (typeof kategorie.beschreibung.map !== 'function') {
+                kategorie.beschreibung = [kategorie.beschreibung as any];
+            }
+            if (!kategorie.klasse) {
+                kategorie.klasse = [];
+            } else if (typeof kategorie.klasse.map !== 'function') {
+                kategorie.klasse = [kategorie.klasse as any];
+            }
+        });
         if (!restLeistung.modulText) {
             restLeistung.modulText = [];
-        } else if (typeof restLeistung.modulText !== 'function') {
+        } else if (typeof restLeistung.modulText.map !== 'function') {
             restLeistung.modulText = [restLeistung.modulText as any];
         }
         restLeistung.modulText.forEach(text => {
@@ -227,6 +266,21 @@ export class DataImport {
             restLeistung.modulUrsprungsportal = [];
         } else if (typeof restLeistung.modulUrsprungsportal !== 'function') {
             restLeistung.modulUrsprungsportal = [restLeistung.modulUrsprungsportal as any];
+        }
+    }
+
+    private sanitizeOrganisationsEinheit(oe: RestOrganisationsEinheit) {
+        if (oe.name) {
+            if (!oe.name.name) {
+                oe.name.name = [];
+            } else if (typeof oe.name.name.map !== 'function') {
+                oe.name.name = [oe.name.name as any];
+            }
+        }
+        if (!oe.anschrift) {
+            oe.anschrift = [];
+        } else if (typeof oe.anschrift.map !== 'function') {
+            oe.anschrift = [oe.anschrift as any];
         }
     }
             

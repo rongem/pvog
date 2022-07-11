@@ -10,9 +10,7 @@ export interface Organisation {
         ort: string;
         bundesland: string;
         gemeinde: string;
-        // gemeindeName: string;
         ars: string;
-        // arsName: string;
     }[];
 }
 
@@ -25,16 +23,14 @@ export const createOrganisation = (orgEinheit: RestOrganisationsEinheit): Organi
     }
     return {
         id: createID(orgEinheit.id),
-        name: orgEinheit.name.name.text,
-        languageCode: orgEinheit.name.name._languageCode,
+        name: orgEinheit.name.name.find(n => n._languageCode === 'de')?.text ?? '',
+        languageCode: orgEinheit.name.name[0]?._languageCode,
         primaeresBundesland: orgEinheit.anschrift?.find(a => a.verwaltungspolitischeKodierung?.bundesland?.code)?.verwaltungspolitischeKodierung.bundesland.code,
         orte: orgEinheit.anschrift.map(anschrift => ({
             ort: anschrift.ort,
             bundesland: anschrift.verwaltungspolitischeKodierung?.bundesland?.code,
             gemeinde: anschrift.verwaltungspolitischeKodierung?.gemeindeschluessel?.code,
-            // gemeindeName: anschrift.verwaltungspolitischeKodierung?.gemeindeschluessel?.name,
             ars: anschrift.verwaltungspolitischeKodierung?.regionalschluessel?.code,
-            // arsName: anschrift.verwaltungspolitischeKodierung?.regionalschluessel?.name,
         }))
     };
 };

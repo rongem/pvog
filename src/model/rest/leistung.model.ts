@@ -53,9 +53,7 @@ export interface RestLeistung {
     },
     kennzeichenSchriftformerfordernis: boolean,
     kategorie: {
-        klasse: {
-            id: { text: string }
-        },
+        klasse: RestID[],
         id: { text: string},
         uebergeordneteKategorieID: {text: string},
         bezeichnung: {
@@ -66,7 +64,7 @@ export interface RestLeistung {
             text: string,
             _languageCode: string,
         }[]
-    },
+    }[],
     informationsbereichSDG: {code: string},
     gueltigkeitGebietID: {
         text: string,

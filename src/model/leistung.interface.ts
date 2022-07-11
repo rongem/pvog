@@ -20,11 +20,11 @@ export const createLeistung = (leistung: RestLeistung): ILeistung => ({
     id: createID(leistung.id),
     informationsbereichSDG: leistung.informationsbereichSDG?.code,
     SDG: leistung.informationsbereichSDG ? 'Ja' : 'Nein',
-    kategorie: !!leistung.kategorie ? {
-        bezeichnung: leistung.kategorie.bezeichnung.map(getMultiLanguage),
-        beschreibung: leistung.kategorie.beschreibung.map(analyzeText),
-        klasse: leistung.kategorie.klasse?.id.text,
-    } : undefined,
+    kategorie: leistung.kategorie.map(kategorie => ({
+        bezeichnung: kategorie.bezeichnung.map(getMultiLanguage),
+        beschreibung: kategorie.beschreibung.map(analyzeText),
+        klasse: kategorie.klasse.map(k => createID(k)),
+    })),
     modulText: leistung.modulText?.map(t => ({
         leikaTextModul: t.leikaTextmodul?.code,
         position: t.positionDarstellung,
@@ -43,10 +43,12 @@ export const createLeistung = (leistung: RestLeistung): ILeistung => ({
             listUri: leistung.struktur.verrichtung.verrichtungLeiKa._listURI,
         } : undefined,
         verrichtungsDetail: leistung.struktur.verrichtungsdetail.map(getMultiLanguage),
+        anzahlVerrichtungsdetails: leistung.struktur.verrichtungsdetail.length,
     } : undefined,
     typisierung: leistung.typisierung.code,
     anzahlServices: 0,
     anzahlOEs: 0,
+    anzahlKategorien: leistung.kategorie.length,
     zuletztGeandert: leistung.versionsinformation?.geaendertDatumZeit,
 });
 
@@ -54,11 +56,11 @@ export interface ILeistung {
     id: string;
     informationsbereichSDG?: string;
     SDG: 'Ja' | 'Nein';
-    kategorie?: {
+    kategorie: {
         bezeichnung: MultiLanguageText[];
         beschreibung: AnalyzedText[];
-        klasse: string;
-    };
+        klasse: string[];
+    }[];
     modulText: {
         inhalt: AnalyzedText[];
         leikaTextModul: string;
@@ -77,10 +79,12 @@ export interface ILeistung {
             listUri: string;
         };
         verrichtungsDetail: MultiLanguageText[];
+        anzahlVerrichtungsdetails: number;
     };
     typisierung: string;
     anzahlServices: number;
     anzahlOEs: number;
+    anzahlKategorien: number;
     zuletztGeandert: string;
 }
 

@@ -14,19 +14,22 @@ export class Storage {
     private organisationseinheiten: {[key: string]: Organisation} = {};
     private zustaendigkeiten: {[key: string]: Zustaendigkeit} = {};
     private serviceZustaendigkeiten: {[key: string]: Zustaendigkeit} = {};
-    private nextUrlSave = '../nexturl.txt';
+    private nextUrlSave = '../nexturl.json';
     private leistungFile = '../leistungen.json';
     private oeFile = '../organisationseinheiten.json';
     private zustFile = '../zustaendigkeiten.csv';
     private servcieZustFile = '../service-zustaendigkeiten.csv';
     private log = Logging.getInstance();
     public startURL = '';
+    public nextIndex = 0;
 
     constructor() {
         if (fs.existsSync(this.nextUrlSave)) {
             console.log('Reading files...');
             console.log(this.nextUrlSave);
-            this.startURL = fs.readFileSync(this.nextUrlSave).toString();
+            const startInfo: {nextUrl: string, nextId: number} = JSON.parse(fs.readFileSync(this.nextUrlSave).toString());
+            this.startURL = startInfo.nextUrl;
+            this.nextIndex = startInfo.nextId;
             console.log(this.leistungFile);
             const la = JSON.parse(fs.readFileSync(this.leistungFile).toString()) as ILeistung[];
             la.forEach(l => this.leistungen[l.id] = l);
@@ -72,7 +75,7 @@ export class Storage {
         }
     }
         
-    saveData = (nextUrl: string) => {
+    saveData = (nextUrl: string, nextId: number) => {
         console.log('saving files...');
         fs.appendFileSync('../log.txt', this.log.logLines);
         this.log.clearLog();
@@ -83,7 +86,7 @@ export class Storage {
             fs.writeFileSync(this.oeFile, JSON.stringify(Object.values(this.organisationseinheiten)));
             this.writeZustaendigkeiten();
             console.log(this.nextUrlSave);
-            fs.writeFileSync(this.nextUrlSave, nextUrl);
+            fs.writeFileSync(this.nextUrlSave, (JSON.stringify({nextId, nextUrl})));
         } catch (error) {
             throw error;
         }
