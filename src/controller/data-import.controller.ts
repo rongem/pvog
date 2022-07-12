@@ -37,6 +37,11 @@ export class DataImport {
         if (fileContent) {
             const rootNode = Object.keys(fileContent.content).find(n => n !== '?xml')!;
             if (fileContent.content[rootNode]) {
+                if (this.sanitizeContent(fileContent.content)) {
+                    console.log('sanitized');
+                    this.storage.saveContent(fileContent.content, currentId, fileContent.nextIndex, fileContent.url);
+                    fileContent = this.storage.loadContent(currentId)!;
+                }
                 return fileContent;
             }
         }
@@ -65,7 +70,7 @@ export class DataImport {
             const orphanedDeletions: number[] = [];
             console.log(this.ctr++, content.url);
             const currentId = content.nextIndex;
-            this.log.logAction('fetching', 'url #' + this.ctr, content.url);
+            // this.log.logAction('fetching', 'url #' + this.ctr, content.url);
             content = await this.getNextContent(currentId, content.url);
             if (content.content) {
                 const rootNode = Object.keys(content.content).find(n => n !== '?xml')!;
@@ -154,10 +159,10 @@ export class DataImport {
             schreibe.forEach((entry: any) => {
                 switch (Object.keys(entry)[0]) {
                     case 'leistung':
-                        changed = changed || this.sanitizeLeistung(entry['leistung']);
+                        changed = this.sanitizeLeistung(entry['leistung']) || changed;
                         break;
                     case 'organisationseinheit':
-                        changed = changed || this.sanitizeOrganisationsEinheit(entry['organisationseinheit']);
+                        changed = this.sanitizeOrganisationsEinheit(entry['organisationseinheit']) || changed;
                         break;
                     // case 'zustaendigkeitTransferObjekt':
                     //     break;

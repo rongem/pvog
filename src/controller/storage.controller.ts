@@ -96,13 +96,14 @@ export class Storage {
         const fileName = `../pvog-backup/${index}.json`;
         const rootNode = Object.keys(content).find(n => n !== '?xml')!;
         if (!content[rootNode]) return;
-        fs.writeFile(fileName, JSON.stringify({
+        fs.writeFileSync(fileName, JSON.stringify({
             content,
             complete: false,
             fromFile: true,
             nextIndex,
             url,
-        }), () => console.log('Saved', fileName));
+        }));
+        console.log('saved', fileName);
     }
 
     loadContent = (index: number): Content | null => {
@@ -156,9 +157,6 @@ export class Storage {
 
     addLeistung(restLeistung: RestLeistung) {
         const leistung = createLeistung(restLeistung);
-        if (leistung.id === 'B100019_102548973') {
-            console.log(restLeistung);
-        }
         if (!!this.leistungen[leistung.id]) {
             this.log.logAction('update', 'leistung', leistung.id);
         } else {

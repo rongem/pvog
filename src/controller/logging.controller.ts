@@ -14,10 +14,10 @@ export class Logging {
     public get logLines() { return this._log.join('\n'); }
 
     public logAction(action: string, objectType: string, id: string, success: string = 'success') {
-        // this._log.push(`${action} ${objectType} ${id}` + (success !== 'success' ? ' ' + success : ''));
-        // if (this._log.length > 10000) {
-        //     this.flushLog();
-        // }
+        this._log.push(`${action} ${objectType} ${id}` + (success !== 'success' ? ' ' + success : ''));
+        if (this._log.length > 100000) {
+            this.flushLog();
+        }
     }
 
     public clearLog() {
@@ -27,7 +27,7 @@ export class Logging {
     public flushLog() {
         if (!this._log || this._log.length === 0) return;
         const lines = this.logLines;
+        fs.appendFileSync(this._logfile, lines);
         this.clearLog();
-        fs.appendFile(this._logfile, lines, () => console.log('log saved'));
     }
 }
