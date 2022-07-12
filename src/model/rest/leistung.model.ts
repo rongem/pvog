@@ -2,79 +2,84 @@ import { MultiLanguageText } from '../ml-text.model';
 import { RestID } from './rest-id.model';
 
 export interface RestLeistung {
-    id: RestID,
+    id: RestID;
     struktur: {
         leistungsobjektID: {
-            text: string,
-            _schemeID: string,
-            _schemeName: string,
-        },
+            text: string;
+            _schemeID: string;
+            _schemeName: string;
+        };
         verrichtung: {
             verrichtungLeiKa: {
-                code: string,
-                name: string,
-                _listURI: string,
+                code: string;
+                name: string;
+                _listURI: string;
               }
-        },
-        verrichtungsdetail: MultiLanguageText[],
+        };
+        verrichtungsdetail: MultiLanguageText[];
         _type: string
-    },
+    };
     referenzLeiKa: {
-        code: string,
-    },
+        code: string;
+    };
     modulText: {
-        positionDarstellung: string,
-        inhalt: MultiLanguageText[],
-        leikaTextmodul: {code: string},
-    }[],
-    modulFrist: { beschreibung: MultiLanguageText[] },
-    modulKosten: { beschreibung: MultiLanguageText[] },
-    modulBearbeitungsdauer: { beschreibung: MultiLanguageText[] },
-    modulBegriffImKontext: { begriffImKontext: {
-        begriff: MultiLanguageText,
-        typ: {code: string}}[]
-    },
+        positionDarstellung: string;
+        inhalt: MultiLanguageText[];
+        leikaTextmodul: {code: string};
+    }[];
+    modulFrist: { beschreibung: MultiLanguageText[] };
+    modulKosten: { beschreibung: MultiLanguageText[] };
+    modulBearbeitungsdauer: { beschreibung: MultiLanguageText[] };
+    modulBegriffImKontext: {
+        begriffImKontext: {
+            begriff: MultiLanguageText;
+            typ: {code: string}
+        }[];
+    };
     modulFachlicheFreigabe: {
-        fachlichFreigegebenAm: string,
+        fachlichFreigegebenAm: string;
         fachlichFreigegebenDurch: {
-            text: string,
-            _languageCode: string,
+            text: string;
+            _languageCode: string;
         }[]
-    },
+    };
     modulUrsprungsportal: {
-        positionDarstellung: string,
-        uri: string,
-        titel: string,
-        _languageCode: string,
-    }[],
+        positionDarstellung: string;
+        uri: string;
+        titel: string;
+        _languageCode: string;
+    }[];
     typisierung: {
-        code: string,
-        name: string
-    },
-    kennzeichenSchriftformerfordernis: boolean,
+        code: string;
+        name: string;
+    }[];
+    kennzeichenSchriftformerfordernis: boolean;
     kategorie: {
-        klasse: RestID[],
-        id: { text: string},
-        uebergeordneteKategorieID: {text: string},
+        klasse: {
+            id: RestID;
+            bezeichnung: MultiLanguageText;
+        }[];
+        id: { text: string};
+        uebergeordneteKategorieID: {text: string};
         bezeichnung: {
-            text: string,
-            _languageCode: string,
-        }[],
+            text: string;
+            _languageCode: string;
+        }[];
         beschreibung: {
-            text: string,
-            _languageCode: string,
-        }[]
-    }[],
-    informationsbereichSDG: {code: string},
+            text: string;
+            _languageCode: string;
+        }[];
+    }[];
+    informationsbereichSDG: {code: string};
     gueltigkeitGebietID: {
-        text: string,
-        _schemeID: string,
-    },
-    kennzeichenEA: false,
-    versionsinformation: { geaendertDatumZeit: string },
+        text: string;
+        _schemeID: string;
+    };
+    kennzeichenEA: false;
+    versionsinformation: { geaendertDatumZeit: string };
     sprachversion:   {
-        languageCode: string,
-        sprachbezeichnungDeutsch: string,
-        sprachbezeichnungNativ: string
-    }[]
+        languageCode: string;
+        sprachbezeichnungDeutsch: string;
+        sprachbezeichnungNativ: string;
+    }[];
 }

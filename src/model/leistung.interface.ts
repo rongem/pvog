@@ -16,6 +16,12 @@ const getMultiLanguage = (b: MultiLanguageText): { text: string; languageCode: s
     languageCode: b._languageCode!,
 });
 
+const sum = (arr: number[]): number => {
+    let sum = 0;
+    arr.forEach(n => sum += n);
+    return sum;
+}
+
 export const createLeistung = (leistung: RestLeistung): ILeistung => ({
     id: createID(leistung.id),
     informationsbereichSDG: leistung.informationsbereichSDG?.code,
@@ -23,7 +29,7 @@ export const createLeistung = (leistung: RestLeistung): ILeistung => ({
     kategorie: leistung.kategorie.map(kategorie => ({
         bezeichnung: kategorie.bezeichnung.map(getMultiLanguage),
         beschreibung: kategorie.beschreibung.map(analyzeText),
-        klasse: kategorie.klasse.map(k => createID(k)),
+        klasse: kategorie.klasse.filter(k => k.bezeichnung._languageCode === 'de').map(k => k.bezeichnung.text),
     })),
     modulText: leistung.modulText?.map(t => ({
         leikaTextModul: t.leikaTextmodul?.code,
@@ -45,10 +51,15 @@ export const createLeistung = (leistung: RestLeistung): ILeistung => ({
         verrichtungsDetail: leistung.struktur.verrichtungsdetail.map(getMultiLanguage),
         anzahlVerrichtungsdetails: leistung.struktur.verrichtungsdetail.length,
     } : undefined,
-    typisierung: leistung.typisierung.code,
+    typisierung: leistung.typisierung.map(t => t.code),
+    primaereTypisierung: leistung.typisierung[0]?.code,
+    anzahlTypisierungen: leistung.typisierung.length,
     anzahlServices: 0,
     anzahlOEs: 0,
     anzahlKategorien: leistung.kategorie.length,
+    anzahlKategorieBeschreibungen: sum(leistung.kategorie.map(k => k.beschreibung.length)),
+    anzahlKategorieBeschreibungenOhneInhalt: sum(leistung.kategorie.map(k => k.beschreibung.filter(b => !b.text).length)),
+    anzahlKategorieBezeichnungen: sum(leistung.kategorie.map(k => k.bezeichnung.length)),
     zuletztGeandert: leistung.versionsinformation?.geaendertDatumZeit,
 });
 
@@ -81,10 +92,15 @@ export interface ILeistung {
         verrichtungsDetail: MultiLanguageText[];
         anzahlVerrichtungsdetails: number;
     };
-    typisierung: string;
+    typisierung: string[];
+    primaereTypisierung: string;
+    anzahlTypisierungen: number;
     anzahlServices: number;
     anzahlOEs: number;
     anzahlKategorien: number;
+    anzahlKategorieBeschreibungen: number;
+    anzahlKategorieBeschreibungenOhneInhalt: number;
+    anzahlKategorieBezeichnungen: number;
     zuletztGeandert: string;
 }
 

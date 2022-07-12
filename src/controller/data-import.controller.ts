@@ -54,8 +54,7 @@ export class DataImport {
             nextIndex: result.data['naechsterIndex'] as number,
             url: result.data['naechsteAnfrageUrl'] as string,
         };
-        console.log(fileContent.complete);
-        this.storage.saveContent(content, currentId, fileContent.nextIndex, fileContent.url);
+        this.storage.saveContent(fileContent.content, currentId, fileContent.nextIndex, fileContent.url);
         return fileContent;
     }
     
@@ -125,7 +124,7 @@ export class DataImport {
                     }
                     if (orphanedDeletions.length > 0) {
                         orphanedDeletions.reverse().forEach(d => deletables.splice(d, 1));
-                        this.storage.saveContent(content, currentId, content.nextIndex, content.url);
+                        this.storage.saveContent(content.content, currentId, content.nextIndex, content.url);
                     }
                 }
             }
@@ -137,26 +136,28 @@ export class DataImport {
         console.log('Minuten:', Math.round((Date.now().valueOf() - startTime) / 6000) / 10);
     }
 
-    private sanitizeContent(content: any) {
+    private sanitizeContent(content: any): boolean {
         const rootNode = Object.keys(content).find(n => n !== '?xml')!;
-        if (!content[rootNode]) return;
+        if (!content[rootNode]) return false;
         const nodes = Object.keys(content[rootNode]).filter(n => !['schreibe', 'loesche', 'nachrichtenkopf', '_produktbezeichnung', '_produkthersteller', '_xzufiVersion'].includes(n));
         if (nodes.length > 0) {
             this.log.logAction('Extracting', 'unknown node types', nodes.join(', '), 'failed');
         }
         let schreibe = content[rootNode]['schreibe'];
+        let changed = false;
         if (schreibe) {
             if (typeof schreibe.forEach !== 'function') {
                 content[rootNode]['schreibe'] = [schreibe];
                 schreibe = content[rootNode]['schreibe'];
+                changed = true;
             }
             schreibe.forEach((entry: any) => {
                 switch (Object.keys(entry)[0]) {
                     case 'leistung':
-                        this.sanitizeLeistung(entry['leistung']);
+                        changed = changed || this.sanitizeLeistung(entry['leistung']);
                         break;
                     case 'organisationseinheit':
-                        this.sanitizeOrganisationsEinheit(entry['organisationseinheit']);
+                        changed = changed || this.sanitizeOrganisationsEinheit(entry['organisationseinheit']);
                         break;
                     // case 'zustaendigkeitTransferObjekt':
                     //     break;
@@ -173,129 +174,182 @@ export class DataImport {
         if (loesche) {
             if (typeof loesche.forEach !== 'function') {
                 content[rootNode]['loesche'] = [loesche];
+                changed = true;
             }
         }
+        return changed;
     }
 
-    private sanitizeLeistung(restLeistung: RestLeistung) {
+    private sanitizeLeistung(restLeistung: RestLeistung): boolean {
+        let changed = false;
         if (restLeistung.struktur) {
             if (!restLeistung.struktur.verrichtungsdetail) {
                 restLeistung.struktur.verrichtungsdetail = [];
+                changed = true;
             } else if (typeof restLeistung.struktur.verrichtungsdetail !== 'function') {
                 restLeistung.struktur.verrichtungsdetail = [restLeistung.struktur.verrichtungsdetail as any];
+                changed = true;
             }
         }
         if (!restLeistung.kategorie) {
             restLeistung.kategorie = [];
+            changed = true;
         } else if (typeof restLeistung.kategorie.map !== 'function') {
             restLeistung.kategorie = [restLeistung.kategorie as any];
+            changed = true;
         }
         restLeistung.kategorie.forEach(kategorie => {
             if (!kategorie.bezeichnung) {
                 kategorie.bezeichnung = [];
+                changed = true;
             } else if (typeof kategorie.bezeichnung.map !== 'function') {
                 kategorie.bezeichnung = [kategorie.bezeichnung as any];
+                changed = true;
             }
             if (!kategorie.beschreibung) {
                 kategorie.beschreibung = [];
+                changed = true;
             } else if (typeof kategorie.beschreibung.map !== 'function') {
                 kategorie.beschreibung = [kategorie.beschreibung as any];
+                changed = true;
             }
             if (!kategorie.klasse) {
                 kategorie.klasse = [];
+                changed = true;
             } else if (typeof kategorie.klasse.map !== 'function') {
                 kategorie.klasse = [kategorie.klasse as any];
+                changed = true;
             }
         });
+        if (!restLeistung.typisierung) {
+            restLeistung.typisierung = [];
+            changed = true;
+            console.log('Fehlender Typ', restLeistung.id);
+        } else if (typeof restLeistung.typisierung.map !== 'function') {
+            restLeistung.typisierung = [restLeistung.typisierung as any];
+            changed = true;
+        }
         if (!restLeistung.modulText) {
             restLeistung.modulText = [];
+            changed = true;
         } else if (typeof restLeistung.modulText.map !== 'function') {
             restLeistung.modulText = [restLeistung.modulText as any];
+            changed = true;
         }
         restLeistung.modulText.forEach(text => {
             if (!text.inhalt) {
                 text.inhalt = [];
+                changed = true;
             } else if (typeof text.inhalt.map !== 'function') {
                 text.inhalt = [text.inhalt as any];
+                changed = true;
             }
         });
         if (!restLeistung.sprachversion) {
             restLeistung.sprachversion = [];
+            changed = true;
         } else if (typeof restLeistung.sprachversion.map !== 'function') {
             restLeistung.sprachversion = [restLeistung.sprachversion as any];
+            changed = true;
         }
         if (!restLeistung.modulBearbeitungsdauer) {
             restLeistung.modulBearbeitungsdauer = {
                 beschreibung: []
             };
+            changed = true;
         } else if (!restLeistung.modulBearbeitungsdauer.beschreibung) {
             restLeistung.modulBearbeitungsdauer.beschreibung = [];
+            changed = true;
         } else if (typeof restLeistung.modulBearbeitungsdauer.beschreibung.map !== 'function') {
             restLeistung.modulBearbeitungsdauer.beschreibung = [restLeistung.modulBearbeitungsdauer.beschreibung as any];
+            changed = true;
         }
         if (!restLeistung.modulBegriffImKontext) {
             restLeistung.modulBegriffImKontext = {
                 begriffImKontext: []
             };
+            changed = true;
         } else if (!restLeistung.modulBegriffImKontext.begriffImKontext) {
             restLeistung.modulBegriffImKontext.begriffImKontext = [];
+            changed = true;
         } else if (typeof restLeistung.modulBegriffImKontext.begriffImKontext.map !== 'function') {
             restLeistung.modulBegriffImKontext.begriffImKontext = [restLeistung.modulBegriffImKontext.begriffImKontext as any];
+            changed = true;
         }
         if (restLeistung.modulFachlicheFreigabe) {
             if (!restLeistung.modulFachlicheFreigabe.fachlichFreigegebenDurch) {
                 restLeistung.modulFachlicheFreigabe.fachlichFreigegebenDurch = [];
+                changed = true;
             } else if (typeof restLeistung.modulFachlicheFreigabe.fachlichFreigegebenDurch.map !== 'function') {
                 restLeistung.modulFachlicheFreigabe.fachlichFreigegebenDurch = [restLeistung.modulFachlicheFreigabe.fachlichFreigegebenDurch as any];
+                changed = true;
             }
         }
         if (!restLeistung.modulFrist) {
             restLeistung.modulFrist = {
                 beschreibung: []
             };
+            changed = true;
         } else if (!restLeistung.modulFrist.beschreibung) {
             restLeistung.modulFrist.beschreibung = [];
+            changed = true;
         } else if (typeof restLeistung.modulFrist.beschreibung.map !== 'function') {
             restLeistung.modulFrist.beschreibung = [restLeistung.modulFrist.beschreibung as any];
+            changed = true;
         }
         if (!restLeistung.modulKosten) {
             restLeistung.modulKosten = {
                 beschreibung: []
             };
+            changed = true;
         } else if (!restLeistung.modulKosten.beschreibung) {
             restLeistung.modulKosten.beschreibung = [];
+            changed = true;
         } else if (typeof restLeistung.modulKosten.beschreibung.map !== 'function') {
             restLeistung.modulKosten.beschreibung = [restLeistung.modulKosten.beschreibung as any];
+            changed = true;
         }
         if (!restLeistung.modulBearbeitungsdauer) {
             restLeistung.modulBearbeitungsdauer = {
                 beschreibung: []
             };
+            changed = true;
         } else if (!restLeistung.modulBearbeitungsdauer.beschreibung) {
             restLeistung.modulBearbeitungsdauer.beschreibung = [];
+            changed = true;
         } else if (typeof restLeistung.modulBearbeitungsdauer.beschreibung.map !== 'function') {
             restLeistung.modulBearbeitungsdauer.beschreibung = [restLeistung.modulBearbeitungsdauer.beschreibung as any];
+            changed = true;
         }
         if (!restLeistung.modulUrsprungsportal) {
             restLeistung.modulUrsprungsportal = [];
+            changed = true;
         } else if (typeof restLeistung.modulUrsprungsportal !== 'function') {
             restLeistung.modulUrsprungsportal = [restLeistung.modulUrsprungsportal as any];
+            changed = true;
         }
+        return changed;
     }
 
-    private sanitizeOrganisationsEinheit(oe: RestOrganisationsEinheit) {
+    private sanitizeOrganisationsEinheit(oe: RestOrganisationsEinheit): boolean {
+        let changed = false;
         if (oe.name) {
             if (!oe.name.name) {
                 oe.name.name = [];
+                changed = true;
             } else if (typeof oe.name.name.map !== 'function') {
                 oe.name.name = [oe.name.name as any];
+                changed = true;
             }
         }
         if (!oe.anschrift) {
             oe.anschrift = [];
+            changed = true;
         } else if (typeof oe.anschrift.map !== 'function') {
             oe.anschrift = [oe.anschrift as any];
+            changed = true;
         }
+        return changed;
     }
             
 }
