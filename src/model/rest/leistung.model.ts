@@ -35,7 +35,7 @@ export interface RestLeistung {
             begriff: MultiLanguageText;
             typ: {code: string}
         }[];
-    };
+    }[];
     modulFachlicheFreigabe: {
         fachlichFreigegebenAm: string;
         fachlichFreigegebenDurch: {
