@@ -153,6 +153,7 @@ export class Storage {
             const element = this.serviceZustaendigkeiten[key];
             content += element.id + '\t' + element.leistungID + '\t' + element.uebergeordnetesObjektID + '\t' + element.gebietId + '\n';
             if (Math.trunc(i / 2000000) > round) {
+                console.log('Writing part', round);
                 this.writeOrAppend(this.servcieZustFile, content, round);
                 round++;
                 content = '';
@@ -178,6 +179,7 @@ export class Storage {
     removeLeistung(id: string) {
         if (this.leistungen[id]) {
             delete this.leistungen[id];
+            this.removeText(id);
             this.log.logAction('delete', 'leistung', id);
         } else {
             this.log.logAction('delete', 'leistung', id, 'failed');
