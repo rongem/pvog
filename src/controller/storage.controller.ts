@@ -8,12 +8,15 @@ import { RestZustaendigkeitTransferObjekt } from '../model/rest/zustaendigkeit.m
 import { createZustaendigkeit, Zustaendigkeit } from '../model/zustaendigkeitstransferobjekt.model';
 import { Logging } from './logging.controller';
 import { Content } from '../model/content.model';
+import { createText, IModultext } from '../model/modultext.interface';
 
 export class Storage {
     private leistungen: {[key: string]: ILeistung} = {};
     private organisationseinheiten: {[key: string]: Organisation} = {};
     private zustaendigkeiten: {[key: string]: Zustaendigkeit} = {};
     private serviceZustaendigkeiten: {[key: string]: Zustaendigkeit} = {};
+    private texte: {[key: string]: IModultext[]} = {};
+    private textModulesfile = '../textmodule.json';
     private nextUrlSave = '../nexturl.json';
     private leistungFile = '../leistungen.json';
     private oeFile = '../organisationseinheiten.json';
@@ -33,6 +36,15 @@ export class Storage {
             console.log(this.leistungFile);
             const la = JSON.parse(fs.readFileSync(this.leistungFile).toString()) as ILeistung[];
             la.forEach(l => this.leistungen[l.id] = l);
+            console.log(this.textModulesfile);
+            const texte = JSON.parse(fs.readFileSync(this.textModulesfile).toString()) as IModultext[];
+            texte.forEach(t => {
+                if (!this.texte[t.id]) {
+                    this.texte[t.id] = [t];
+                } else {
+                    this.texte[t.id].push(t);
+                }
+            });
             console.log(this.oeFile);
             const oe = JSON.parse(fs.readFileSync(this.oeFile).toString()) as Organisation[];
             oe.forEach(o => this.organisationseinheiten[o.id] = o);
@@ -81,6 +93,8 @@ export class Storage {
         try {
             console.log(this.leistungFile);
             fs.writeFileSync(this.leistungFile, JSON.stringify(Object.values(this.leistungen)));
+            console.log(this.textModulesfile);
+            fs.writeFileSync(this.textModulesfile, JSON.stringify(Object.values(this.texte).flat()));
             console.log(this.oeFile);
             fs.writeFileSync(this.oeFile, JSON.stringify(Object.values(this.organisationseinheiten)));
             this.writeZustaendigkeiten();
@@ -241,6 +255,17 @@ export class Storage {
             this.log.logAction('delete', 'zustaendigkeit', id, 'failed');
             return false;
         }
+    }
+
+    addText(leistung: RestLeistung) {
+        const text = createText(leistung);
+        if (text.length > 0) {
+            this.texte[text[0].id] = text;
+        }
+    }
+
+    removeText(id: string) {
+        delete this.texte[id];
     }
 
 }

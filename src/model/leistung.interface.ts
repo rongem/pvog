@@ -2,6 +2,7 @@ import { RestLeistung } from './rest/leistung.model';
 import { MultiLanguageText } from './ml-text.model';
 import { createID } from './id.model';
 import { AnalyzedText } from './rest/analyzed-text.model';
+import { IModultext } from './modultext.interface';
 
 const analyzeText = (i: MultiLanguageText): { wortAnzahl: number; zeichenAnzahl: number; languageCode: string; } => {
     const cleanedText = i.text.replace(/<\/?[^>]+(>|$)/g, '');
@@ -31,11 +32,6 @@ export const createLeistung = (leistung: RestLeistung): ILeistung => ({
         beschreibung: kategorie.beschreibung.map(analyzeText),
         klasse: kategorie.klasse.filter(k => k.bezeichnung._languageCode === 'de').map(k => k.bezeichnung.text),
     })),
-    modulText: leistung.modulText?.map(t => ({
-        leikaTextModul: t.leikaTextmodul?.code,
-        position: t.positionDarstellung,
-        inhalt: t.inhalt.map(analyzeText),
-    })) ?? [],
     struktur: !!leistung.struktur ? {
         leistungsobjekt: !!leistung.struktur.leistungsobjektID ? {
             ID: leistung.struktur.leistungsobjektID.text,
@@ -60,6 +56,7 @@ export const createLeistung = (leistung: RestLeistung): ILeistung => ({
     anzahlKategorieBeschreibungen: sum(leistung.kategorie.map(k => k.beschreibung.length)),
     anzahlKategorieBeschreibungenOhneInhalt: sum(leistung.kategorie.map(k => k.beschreibung.filter(b => !b.text).length)),
     anzahlKategorieBezeichnungen: sum(leistung.kategorie.map(k => k.bezeichnung.length)),
+    anzahlModulTexte: leistung.modulText.length,
     leistungsBeschreibungDE: leistung.modulText
         .filter(t => t.leikaTextmodul.code === '02')
         .map(t => t.inhalt.filter(i => i._languageCode === 'de').map(i => i.text).join(';')
@@ -75,11 +72,6 @@ export interface ILeistung {
         bezeichnung: MultiLanguageText[];
         beschreibung: AnalyzedText[];
         klasse: string[];
-    }[];
-    modulText: {
-        inhalt: AnalyzedText[];
-        leikaTextModul: string;
-        position: string;
     }[];
     struktur?: {
         leistungsobjekt?: {
@@ -105,6 +97,7 @@ export interface ILeistung {
     anzahlKategorieBeschreibungen: number;
     anzahlKategorieBeschreibungenOhneInhalt: number;
     anzahlKategorieBezeichnungen: number;
+    anzahlModulTexte: number;
     leistungsBeschreibungDE: string;
     zuletztGeandert: string;
 }
