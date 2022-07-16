@@ -2,7 +2,6 @@ import { RestLeistung } from './rest/leistung.model';
 import { MultiLanguageText } from './ml-text.model';
 import { createID } from './id.model';
 import { AnalyzedText } from './rest/analyzed-text.model';
-import { IModultext } from './modultext.interface';
 
 const analyzeText = (i: MultiLanguageText): { wortAnzahl: number; zeichenAnzahl: number; languageCode: string; } => {
     const cleanedText = i.text.replace(/<\/?[^>]+(>|$)/g, '');

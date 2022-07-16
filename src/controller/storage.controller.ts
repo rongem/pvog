@@ -171,11 +171,7 @@ export class Storage {
 
     addLeistung(restLeistung: RestLeistung) {
         const leistung = createLeistung(restLeistung);
-        if (!!this.leistungen[leistung.id]) {
-            this.log.logAction('update', 'leistung', leistung.id);
-        } else {
-            this.log.logAction('create', 'leistung', leistung.id);
-        }
+        // this.log.logAction(!!this.leistungen[leistung.id] ? 'update' : 'create', 'leistung', leistung.id)
         this.leistungen[leistung.id] = leistung;
     }
 
@@ -191,11 +187,7 @@ export class Storage {
 
     addOrganisationsEinheit(organisationseinheit: RestOrganisationsEinheit) {
         const oe = createOrganisation(organisationseinheit);
-        if (!!this.organisationseinheiten[oe.id]) {
-            this.log.logAction('update', 'organisationseinheit', oe.id);
-        } else {
-            this.log.logAction('create', 'organisationseinheit', oe.id);
-        }
+        // this.log.logAction(!!this.organisationseinheiten[oe.id] ? 'update' : 'create', 'organisationseinheit', oe.id)
         this.organisationseinheiten[oe.id] = oe;
     }
 
@@ -217,18 +209,18 @@ export class Storage {
             switch (zust.zustaendigkeitsSchema) {
                 case 'ZustaendigkeitOrganisationseinheit':
                     if (!!this.zustaendigkeiten[zust.id]) {
-                        this.log.logAction('update', 'zustaendigkeit', zust.id)
+                        // this.log.logAction('update', 'zustaendigkeit', zust.id)
                     } else {
-                        this.log.logAction('create', 'zustaendigkeit', zust.id)
+                        // this.log.logAction('create', 'zustaendigkeit', zust.id)
                         this.leistungen[zust.leistungID].anzahlOEs++;
                     }
                     this.zustaendigkeiten[zust.id] = zust;
                     break;
                 case 'ZustaendigkeitOnlinedienst':
                     if (!!this.serviceZustaendigkeiten[zust.id]) {
-                        this.log.logAction('update', 'servicezustaendigkeit', zust.id)
+                        // this.log.logAction('update', 'servicezustaendigkeit', zust.id)
                     } else {
-                        this.log.logAction('create', 'servicezustaendigkeit', zust.id)
+                        // this.log.logAction('create', 'servicezustaendigkeit', zust.id)
                         this.leistungen[zust.leistungID].anzahlServices++;
                     }
                     this.serviceZustaendigkeiten[zust.id] = zust;

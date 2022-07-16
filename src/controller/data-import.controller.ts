@@ -82,6 +82,7 @@ export class DataImport {
                             switch (Object.keys(entry)[0]) {
                                 case 'leistung':
                                     this.storage.addLeistung(entry['leistung']);
+                                    this.storage.addText(entry['leistung']);
                                     break;
                                 case 'organisationseinheit':
                                     this.storage.addOrganisationsEinheit(entry['organisationseinheit']);
