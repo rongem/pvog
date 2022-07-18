@@ -9,12 +9,15 @@ import { createZustaendigkeit, Zustaendigkeit } from '../model/zustaendigkeitstr
 import { Logging } from './logging.controller';
 import { Content } from '../model/content.model';
 import { createText, IModultext } from '../model/modultext.interface';
+import { createOnlineDienst, OnlineDienst } from '../model/online-dienst.interface';
+import { RestOnlineDienst } from '../model/rest/online-dienst.model';
 
 export class Storage {
     private leistungen: {[key: string]: ILeistung} = {};
     private organisationseinheiten: {[key: string]: Organisation} = {};
     private zustaendigkeiten: {[key: string]: Zustaendigkeit} = {};
     private serviceZustaendigkeiten: {[key: string]: Zustaendigkeit} = {};
+    private services: {[key: string]: OnlineDienst} = {};
     private texte: {[key: string]: IModultext[]} = {};
     private textModulesfile = '../textmodule.json';
     private nextUrlSave = '../nexturl.json';
@@ -22,6 +25,7 @@ export class Storage {
     private oeFile = '../organisationseinheiten.json';
     private zustFile = '../zustaendigkeiten.csv';
     private servcieZustFile = '../service-zustaendigkeiten.csv';
+    private serviceFile = '../online-dienste.json';
     private log = Logging.getInstance();
     public startURL = '';
     public nextIndex = 0;
@@ -48,6 +52,9 @@ export class Storage {
             console.log(this.oeFile);
             const oe = JSON.parse(fs.readFileSync(this.oeFile).toString()) as Organisation[];
             oe.forEach(o => this.organisationseinheiten[o.id] = o);
+            console.log(this.serviceFile);
+            const sv = JSON.parse(fs.readFileSync(this.serviceFile).toString()) as OnlineDienst[];
+            sv.forEach(s => this.services[s.id] = s);
             console.log(this.zustFile);
             let zuBuff = fs.readFileSync(this.zustFile);
             let delim = Buffer.from('\n');
@@ -97,6 +104,8 @@ export class Storage {
             fs.writeFileSync(this.textModulesfile, JSON.stringify(Object.values(this.texte).flat()));
             console.log(this.oeFile);
             fs.writeFileSync(this.oeFile, JSON.stringify(Object.values(this.organisationseinheiten)));
+            console.log(this.serviceFile);
+            fs.writeFileSync(this.serviceFile, JSON.stringify(Object.values(this.services)));
             this.writeZustaendigkeiten();
             console.log(this.nextUrlSave);
             fs.writeFileSync(this.nextUrlSave, (JSON.stringify({nextId, nextUrl})));
@@ -260,6 +269,20 @@ export class Storage {
 
     removeText(id: string) {
         delete this.texte[id];
+    }
+
+    addService(dienst: RestOnlineDienst) {
+        const service = createOnlineDienst(dienst);
+        if (!this.services[service.id]) {
+            // this.log.logAction('create', 'onlinedienst', service.id);
+        } else {
+            // this.log.logAction('update', 'onlinedienst', service.id);
+        }
+        this.services[service.id] = service;
+    }
+
+    removeService(id: string) {
+        delete this.services[id];
     }
 
 }

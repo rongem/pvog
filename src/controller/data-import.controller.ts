@@ -3,6 +3,7 @@ import { XMLParser} from "fast-xml-parser";
 import { Content } from '../model/content.model';
 import { createID } from '../model/id.model';
 import { RestLeistung } from '../model/rest/leistung.model';
+import { RestOnlineDienst } from '../model/rest/online-dienst.model';
 import { RestOrganisationsEinheit } from '../model/rest/organisationseinheit.model';
 import { Token } from '../model/token.model';
 import { Logging } from './logging.controller';
@@ -37,11 +38,11 @@ export class DataImport {
         if (fileContent) {
             const rootNode = Object.keys(fileContent.content).find(n => n !== '?xml')!;
             if (fileContent.content[rootNode]) {
-                // if (this.sanitizeContent(fileContent.content)) {
-                //     console.log('sanitized');
-                //     this.storage.saveContent(fileContent.content, currentId, fileContent.nextIndex, fileContent.url);
-                //     fileContent = this.storage.loadContent(currentId)!;
-                // }
+                if (this.sanitizeContent(fileContent.content)) {
+                    console.log('sanitized');
+                    this.storage.saveContent(fileContent.content, currentId, fileContent.nextIndex, fileContent.url);
+                    fileContent = this.storage.loadContent(currentId)!;
+                }
                 return fileContent;
             }
         }
@@ -93,6 +94,7 @@ export class DataImport {
                                 case 'spezialisierung':
                                     break;
                                 case 'onlinedienst':
+                                    this.storage.addService(entry[Object.keys(entry)[0]]);
                                     break;
                                 default:
                                     this.log.logAction('ignore', 'write object handlers', Object.keys(entry)[0], 'failed');
@@ -121,6 +123,7 @@ export class DataImport {
                                 case 'LeistungSpezialisierung':
                                     break;
                                 case 'Onlinedienst':
+                                    this.storage.removeService(id);
                                     break;
                                 default:
                                     this.log.logAction('ignore', 'delete object handlers', entry._klasse, 'failed');
@@ -169,8 +172,9 @@ export class DataImport {
                     //     break;
                     // case 'spezialisierung':
                     //     break;
-                    // case 'onlinedienst':
-                    //     break;
+                    case 'onlinedienst':
+                        changed = this.sanitizeOnlineDienst(entry['onlinedienst']) || changed;
+                        break;
                     default:
                         break;
                 }
@@ -357,6 +361,25 @@ export class DataImport {
             changed = true;
         } else if (typeof oe.anschrift.map !== 'function') {
             oe.anschrift = [oe.anschrift as any];
+            changed = true;
+        }
+        return changed;
+    }
+
+    private sanitizeOnlineDienst(sv: RestOnlineDienst): boolean {
+        let changed = false;
+        if (!sv.bezeichnung) {
+            sv.bezeichnung = [];
+            changed = true;
+        } else if (typeof sv.bezeichnung.map !== 'function') {
+            sv.bezeichnung = [sv.bezeichnung as any];
+            changed = true;
+        }
+        if (!sv.link) {
+            sv.link = [];
+            changed = true;
+        } else if (typeof sv.link.map !== 'function') {
+            sv.link = [sv.link as any];
             changed = true;
         }
         return changed;
