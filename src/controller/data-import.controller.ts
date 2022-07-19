@@ -40,8 +40,8 @@ export class DataImport {
             if (fileContent.content[rootNode]) {
                 if (this.sanitizeContent(fileContent.content)) {
                     console.log('sanitized');
-                    this.storage.saveContent(fileContent.content, currentId, fileContent.nextIndex, fileContent.url);
-                    fileContent = this.storage.loadContent(currentId)!;
+                    // this.storage.saveContent(fileContent.content, currentId, fileContent.nextIndex, fileContent.url);
+                    // fileContent = this.storage.loadContent(currentId)!;
                 }
                 return fileContent;
             }
@@ -241,14 +241,14 @@ export class DataImport {
             console.log('Fehlender Typ', restLeistung.id);
         } else if (typeof restLeistung.typisierung.map !== 'function') {
             restLeistung.typisierung = [restLeistung.typisierung as any];
-            changed = true;
+                changed = true;
         }
         if (!restLeistung.modulText) {
             restLeistung.modulText = [];
             changed = true;
         } else if (typeof restLeistung.modulText.map !== 'function') {
             restLeistung.modulText = [restLeistung.modulText as any];
-            changed = true;
+                changed = true;
         }
         restLeistung.modulText.forEach(text => {
             if (!text.inhalt) {
@@ -278,22 +278,14 @@ export class DataImport {
             restLeistung.modulBearbeitungsdauer.beschreibung = [restLeistung.modulBearbeitungsdauer.beschreibung as any];
             changed = true;
         }
-        if (!restLeistung.modulBegriffImKontext) {
-            restLeistung.modulBegriffImKontext = [];
+        if (!restLeistung.modulBegriffImKontext.begriffImKontext) {
+            restLeistung.modulBegriffImKontext.begriffImKontext = [];
             changed = true;
-        } else if (typeof restLeistung.modulBegriffImKontext.map !== 'function') {
-            restLeistung.modulBegriffImKontext = [restLeistung.modulBegriffImKontext as any];
+        } else if (typeof restLeistung.modulBegriffImKontext.begriffImKontext.map !== 'function') {
+            console.log(restLeistung.modulBegriffImKontext.begriffImKontext);
+            restLeistung.modulBegriffImKontext.begriffImKontext = [restLeistung.modulBegriffImKontext.begriffImKontext as any];
             changed = true;
         }
-        restLeistung.modulBegriffImKontext.forEach(mb => {
-            if (!mb.begriffImKontext) {
-                mb.begriffImKontext = [];
-                changed = true;
-            } else if (typeof mb.begriffImKontext.map !== 'function') {
-                mb.begriffImKontext = [mb.begriffImKontext as any];
-                changed = true;
-            }
-        });
         if (restLeistung.modulFachlicheFreigabe) {
             if (!restLeistung.modulFachlicheFreigabe.fachlichFreigegebenDurch) {
                 restLeistung.modulFachlicheFreigabe.fachlichFreigegebenDurch = [];
