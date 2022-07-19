@@ -38,11 +38,11 @@ export class DataImport {
         if (fileContent) {
             const rootNode = Object.keys(fileContent.content).find(n => n !== '?xml')!;
             if (fileContent.content[rootNode]) {
-                // if (this.sanitizeContent(fileContent.content)) {
-                //     console.log('sanitized');
-                //     this.storage.saveContent(fileContent.content, currentId, fileContent.nextIndex, fileContent.url);
-                //     fileContent = this.storage.loadContent(currentId)!;
-                // }
+                if (this.sanitizeContent(fileContent.content)) {
+                    console.log('sanitized');
+                    this.storage.saveContent(fileContent.content, currentId, fileContent.nextIndex, fileContent.url);
+                    fileContent = this.storage.loadContent(currentId)!;
+                }
                 return fileContent;
             }
         }
@@ -203,6 +203,9 @@ export class DataImport {
             } else if (typeof restLeistung.struktur.verrichtungsdetail.map !== 'function') {
                 restLeistung.struktur.verrichtungsdetail = [restLeistung.struktur.verrichtungsdetail as any];
                 changed = true;
+            } else if (restLeistung.struktur.verrichtungsdetail[0] && typeof (restLeistung.struktur.verrichtungsdetail[0] as any).map === 'function') {
+                restLeistung.struktur.verrichtungsdetail = restLeistung.struktur.verrichtungsdetail.flat();
+                changed = true;
             }
         }
         if (!restLeistung.kategorie) {
@@ -238,7 +241,6 @@ export class DataImport {
         if (!restLeistung.typisierung) {
             restLeistung.typisierung = [];
             changed = true;
-            console.log('Fehlender Typ', restLeistung.id);
         } else if (typeof restLeistung.typisierung.map !== 'function') {
             restLeistung.typisierung = [restLeistung.typisierung as any];
                 changed = true;
@@ -278,11 +280,15 @@ export class DataImport {
             restLeistung.modulBearbeitungsdauer.beschreibung = [restLeistung.modulBearbeitungsdauer.beschreibung as any];
             changed = true;
         }
-        if (!restLeistung.modulBegriffImKontext.begriffImKontext) {
+        if (!restLeistung.modulBegriffImKontext) {
+            restLeistung.modulBegriffImKontext = {
+                begriffImKontext: [],
+            };
+            changed = true;
+        } else if (!restLeistung.modulBegriffImKontext.begriffImKontext) {
             restLeistung.modulBegriffImKontext.begriffImKontext = [];
             changed = true;
         } else if (typeof restLeistung.modulBegriffImKontext.begriffImKontext.map !== 'function') {
-            console.log(restLeistung.modulBegriffImKontext.begriffImKontext);
             restLeistung.modulBegriffImKontext.begriffImKontext = [restLeistung.modulBegriffImKontext.begriffImKontext as any];
             changed = true;
         }
@@ -337,6 +343,9 @@ export class DataImport {
         } else if (typeof restLeistung.modulUrsprungsportal.map !== 'function') {
             restLeistung.modulUrsprungsportal = [restLeistung.modulUrsprungsportal as any];
             changed = true;
+        } else if (restLeistung.modulUrsprungsportal[0] && typeof (restLeistung.modulUrsprungsportal[0] as any).map === 'function') {
+            restLeistung.modulUrsprungsportal = restLeistung.modulUrsprungsportal.flat();
+            changed = true;
         }
         return changed;
     }
@@ -367,7 +376,7 @@ export class DataImport {
         if (!sv.bezeichnung) {
             sv.bezeichnung = [];
             changed = true;
-            console.log(1);
+            // console.log(1);
         } else if (typeof sv.bezeichnung.map !== 'function') {
             sv.bezeichnung = [sv.bezeichnung as any];
             changed = true;
@@ -376,7 +385,7 @@ export class DataImport {
         if (!sv.link) {
             sv.link = [];
             changed = true;
-            console.log(3);
+            // console.log(3);
         } else if (typeof sv.link.map !== 'function') {
             sv.link = [sv.link as any];
             changed = true;

@@ -182,6 +182,11 @@ export class Storage {
     addLeistung(restLeistung: RestLeistung) {
         const leistung = createLeistung(restLeistung);
         // this.log.logAction(!!this.leistungen[leistung.id] ? 'update' : 'create', 'leistung', leistung.id)
+        const oldLeistung = this.leistungen[leistung.id];
+        if (oldLeistung) {
+            leistung.anzahlOEs = oldLeistung.anzahlOEs;
+            leistung.anzahlServices = oldLeistung.anzahlServices;
+        }
         this.leistungen[leistung.id] = leistung;
     }
 
@@ -233,7 +238,11 @@ export class Storage {
                     } else {
                         // this.log.logAction('create', 'servicezustaendigkeit', zust.id)
                         this.leistungen[zust.leistungID].anzahlServices++;
-                        this.services[zust.uebergeordnetesObjektID].anzahlZustaendigkeiten++;
+                        if (this.services[zust.uebergeordnetesObjektID]) {
+                            this.services[zust.uebergeordnetesObjektID].anzahlZustaendigkeiten++;
+                        } else {
+                            return;
+                        }
                     }
                     this.serviceZustaendigkeiten[zust.id] = zust;
                     break;
@@ -275,10 +284,12 @@ export class Storage {
 
     addService(dienst: RestOnlineDienst) {
         const service = createOnlineDienst(dienst);
-        if (!this.services[service.id]) {
+        const oldService = this.services[service.id];
+        if (!oldService) {
             // this.log.logAction('create', 'onlinedienst', service.id);
         } else {
             // this.log.logAction('update', 'onlinedienst', service.id);
+            service.anzahlZustaendigkeiten = oldService.anzahlZustaendigkeiten;
         }
         this.services[service.id] = service;
     }
