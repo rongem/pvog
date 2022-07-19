@@ -38,11 +38,11 @@ export class DataImport {
         if (fileContent) {
             const rootNode = Object.keys(fileContent.content).find(n => n !== '?xml')!;
             if (fileContent.content[rootNode]) {
-                if (this.sanitizeContent(fileContent.content)) {
-                    console.log('sanitized');
-                    this.storage.saveContent(fileContent.content, currentId, fileContent.nextIndex, fileContent.url);
-                    fileContent = this.storage.loadContent(currentId)!;
-                }
+                // if (this.sanitizeContent(fileContent.content)) {
+                //     console.log('sanitized');
+                //     this.storage.saveContent(fileContent.content, currentId, fileContent.nextIndex, fileContent.url);
+                //     fileContent = this.storage.loadContent(currentId)!;
+                // }
                 return fileContent;
             }
         }
