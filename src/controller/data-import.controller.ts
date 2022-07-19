@@ -40,8 +40,8 @@ export class DataImport {
             if (fileContent.content[rootNode]) {
                 if (this.sanitizeContent(fileContent.content)) {
                     console.log('sanitized');
-                    // this.storage.saveContent(fileContent.content, currentId, fileContent.nextIndex, fileContent.url);
-                    // fileContent = this.storage.loadContent(currentId)!;
+                    this.storage.saveContent(fileContent.content, currentId, fileContent.nextIndex, fileContent.url);
+                    fileContent = this.storage.loadContent(currentId)!;
                 }
                 return fileContent;
             }
@@ -163,14 +163,14 @@ export class DataImport {
             schreibe.forEach((entry: any) => {
                 switch (Object.keys(entry)[0]) {
                     case 'leistung':
-                        const cb1 = changed;
+                        // const cb1 = changed;
                         changed = this.sanitizeLeistung(entry['leistung']) || changed;
-                        if (cb1 !== changed) console.log(1);
+                        // if (cb1 !== changed) console.log(1);
                         break;
                     case 'organisationseinheit':
-                        const cb2 = changed;
+                        // const cb2 = changed;
                         changed = this.sanitizeOrganisationsEinheit(entry['organisationseinheit']) || changed;
-                        if (cb2 !== changed) console.log(2);
+                        // if (cb2 !== changed) console.log(2);
                         break;
                     // case 'zustaendigkeitTransferObjekt':
                     //     break;
