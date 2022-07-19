@@ -7,6 +7,7 @@ export const createOnlineDienst = (dienst: RestOnlineDienst): OnlineDienst => ({
     links: dienst.link.map(l => l.link),
     anzahlBezeichnungen: dienst.bezeichnung.length,
     anzahlLinks: dienst.link.length,
+    anzahlZustaendigkeiten: 0,
 });
 
 export interface OnlineDienst {
@@ -15,4 +16,5 @@ export interface OnlineDienst {
     links: string[];
     anzahlBezeichnungen: number;
     anzahlLinks: number;
+    anzahlZustaendigkeiten: number;
 }

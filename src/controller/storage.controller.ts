@@ -233,6 +233,7 @@ export class Storage {
                     } else {
                         // this.log.logAction('create', 'servicezustaendigkeit', zust.id)
                         this.leistungen[zust.leistungID].anzahlServices++;
+                        this.services[zust.uebergeordnetesObjektID].anzahlZustaendigkeiten++;
                     }
                     this.serviceZustaendigkeiten[zust.id] = zust;
                     break;
@@ -247,12 +248,13 @@ export class Storage {
         if (this.zustaendigkeiten[id]) {
             this.leistungen[this.zustaendigkeiten[id].leistungID].anzahlOEs--;
             delete this.zustaendigkeiten[id];
-            this.log.logAction('delete', 'zustaendigkeit', id);
+            // this.log.logAction('delete', 'zustaendigkeit', id);
             return true;
         } else if (this.serviceZustaendigkeiten[id]) {
             this.leistungen[this.serviceZustaendigkeiten[id].leistungID].anzahlServices--;
+            this.services[this.serviceZustaendigkeiten[id].uebergeordnetesObjektID].anzahlZustaendigkeiten--;
             delete this.serviceZustaendigkeiten[id];
-            this.log.logAction('delete', 'servicezustaendigkeit', id);
+            // this.log.logAction('delete', 'servicezustaendigkeit', id);
             return true;
         } else {
             this.log.logAction('delete', 'zustaendigkeit', id, 'failed');

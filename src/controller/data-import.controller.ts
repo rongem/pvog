@@ -163,10 +163,14 @@ export class DataImport {
             schreibe.forEach((entry: any) => {
                 switch (Object.keys(entry)[0]) {
                     case 'leistung':
+                        const cb1 = changed;
                         changed = this.sanitizeLeistung(entry['leistung']) || changed;
+                        if (cb1 !== changed) console.log(1);
                         break;
                     case 'organisationseinheit':
+                        const cb2 = changed;
                         changed = this.sanitizeOrganisationsEinheit(entry['organisationseinheit']) || changed;
+                        if (cb2 !== changed) console.log(2);
                         break;
                     // case 'zustaendigkeitTransferObjekt':
                     //     break;
@@ -338,7 +342,7 @@ export class DataImport {
         if (!restLeistung.modulUrsprungsportal) {
             restLeistung.modulUrsprungsportal = [];
             changed = true;
-        } else if (typeof restLeistung.modulUrsprungsportal !== 'function') {
+        } else if (typeof restLeistung.modulUrsprungsportal.map !== 'function') {
             restLeistung.modulUrsprungsportal = [restLeistung.modulUrsprungsportal as any];
             changed = true;
         }
@@ -371,16 +375,20 @@ export class DataImport {
         if (!sv.bezeichnung) {
             sv.bezeichnung = [];
             changed = true;
+            console.log(1);
         } else if (typeof sv.bezeichnung.map !== 'function') {
             sv.bezeichnung = [sv.bezeichnung as any];
             changed = true;
+            // console.log(2);
         }
         if (!sv.link) {
             sv.link = [];
             changed = true;
+            console.log(3);
         } else if (typeof sv.link.map !== 'function') {
             sv.link = [sv.link as any];
             changed = true;
+            // console.log(4);
         }
         return changed;
     }
