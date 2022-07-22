@@ -148,6 +148,7 @@ export class Storage {
             const element = this.zustaendigkeiten[key];
             content += element.id + '\t' + element.leistungID + '\t' + element.uebergeordnetesObjektID + '\t' + element.gebietId + '\n';
             if (Math.trunc(i / 2000000) > round) {
+                console.log('Writing part', round);
                 this.writeOrAppend(this.zustFile, content, round);
                 round++;
                 content = '';
