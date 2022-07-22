@@ -46,11 +46,15 @@ export const createLeistung = (leistung: RestLeistung): ILeistung => ({
         verrichtungsDetail: leistung.struktur.verrichtungsdetail.map(getMultiLanguage),
         anzahlVerrichtungsdetails: leistung.struktur.verrichtungsdetail.length,
     } : undefined,
+    leikaIDs: leistung.referenzLeiKa.map(l => l.code),
+    primaereLeikaID: leistung.referenzLeiKa[0]?.code,
+    anzahlLeikaIDs: leistung.referenzLeiKa.length,
     typisierung: leistung.typisierung.map(t => t.code),
     primaereTypisierung: leistung.typisierung[0]?.code,
     anzahlTypisierungen: leistung.typisierung.length,
     anzahlServices: 0,
     anzahlOEs: 0,
+    anzahlUpdates: 0,
     anzahlKategorien: leistung.kategorie.length,
     anzahlKategorieBeschreibungen: sum(leistung.kategorie.map(k => k.beschreibung.length)),
     anzahlKategorieBeschreibungenOhneInhalt: sum(leistung.kategorie.map(k => k.beschreibung.filter(b => !b.text).length)),
@@ -87,10 +91,14 @@ export interface ILeistung {
         verrichtungsDetail: MultiLanguageText[];
         anzahlVerrichtungsdetails: number;
     };
+    leikaIDs: string[];
+    primaereLeikaID: string;
+    anzahlLeikaIDs: number;
     typisierung: string[];
     primaereTypisierung: string;
     anzahlTypisierungen: number;
     anzahlServices: number;
+    anzahlUpdates: number;
     anzahlOEs: number;
     anzahlKategorien: number;
     anzahlKategorieBeschreibungen: number;

@@ -21,7 +21,7 @@ export interface RestLeistung {
     };
     referenzLeiKa: {
         code: string;
-    };
+    }[];
     modulText: {
         positionDarstellung: string;
         inhalt: MultiLanguageText[];

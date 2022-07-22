@@ -29,6 +29,7 @@ export class Storage {
     private log = Logging.getInstance();
     public startURL = '';
     public nextIndex = 0;
+    private deletionsNW = 0;
 
     constructor() {
         if (fs.existsSync(this.nextUrlSave)) {
@@ -95,6 +96,7 @@ export class Storage {
     }
         
     saveData = (nextUrl: string, nextId: number) => {
+        console.log('deleted NW', this.deletionsNW);
         console.log('saving files...');
         this.log.flushLog();
         try {
@@ -187,6 +189,7 @@ export class Storage {
         if (oldLeistung) {
             leistung.anzahlOEs = oldLeistung.anzahlOEs;
             leistung.anzahlServices = oldLeistung.anzahlServices;
+            leistung.anzahlUpdates = oldLeistung.anzahlUpdates + 1;
         }
         this.leistungen[leistung.id] = leistung;
     }
@@ -199,7 +202,9 @@ export class Storage {
         } else {
             this.log.logAction('delete', 'leistung', id, 'failed');
         }
-
+        if (id.startsWith('L100002_')) {
+            this.deletionsNW++;
+        }
     }
 
     addOrganisationsEinheit(organisationseinheit: RestOrganisationsEinheit) {

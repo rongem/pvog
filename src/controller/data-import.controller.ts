@@ -238,6 +238,13 @@ export class DataImport {
                 changed = true;
             }
         });
+        if (!restLeistung.referenzLeiKa) {
+            restLeistung.referenzLeiKa = [];
+            changed = true;
+        } else if (typeof restLeistung.referenzLeiKa.map !== 'function') {
+            restLeistung.referenzLeiKa = [restLeistung.referenzLeiKa as any];
+            changed = true;
+        }
         if (!restLeistung.typisierung) {
             restLeistung.typisierung = [];
             changed = true;
