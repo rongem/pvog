@@ -31,11 +31,12 @@ export interface RestLeistung {
     modulKosten: { beschreibung: MultiLanguageText[] };
     modulBearbeitungsdauer: { beschreibung: MultiLanguageText[] };
     modulBegriffImKontext: {
+        positionDarstellung: string;
         begriffImKontext: {
             begriff: MultiLanguageText;
-            typ: {code: string}
+            typ: {code: string;};
         }[];
-    };
+    }[];
     modulFachlicheFreigabe: {
         fachlichFreigegebenAm: string;
         fachlichFreigegebenDurch: {
@@ -70,7 +71,7 @@ export interface RestLeistung {
             _languageCode: string;
         }[];
     }[];
-    informationsbereichSDG: {code: string};
+    informationsbereichSDG: {code: string}[];
     gueltigkeitGebietID: {
         text: string;
         _schemeID: string;

@@ -204,9 +204,18 @@ export class DataImport {
                 restLeistung.struktur.verrichtungsdetail = [restLeistung.struktur.verrichtungsdetail as any];
                 changed = true;
             } else if (restLeistung.struktur.verrichtungsdetail[0] && typeof (restLeistung.struktur.verrichtungsdetail[0] as any).map === 'function') {
-                restLeistung.struktur.verrichtungsdetail = restLeistung.struktur.verrichtungsdetail.flat();
+                while (restLeistung.struktur.verrichtungsdetail[0] && typeof (restLeistung.struktur.verrichtungsdetail[0] as any).map === 'function') {
+                    restLeistung.struktur.verrichtungsdetail = restLeistung.struktur.verrichtungsdetail.flat();
+                }
                 changed = true;
             }
+        }
+        if (!restLeistung.informationsbereichSDG) {
+            restLeistung.informationsbereichSDG = [];
+            changed = true;
+        } else if (typeof restLeistung.informationsbereichSDG.map !== 'function') {
+            restLeistung.informationsbereichSDG = [restLeistung.informationsbereichSDG as any];
+            changed = true;
         }
         if (!restLeistung.kategorie) {
             restLeistung.kategorie = [];
@@ -288,17 +297,21 @@ export class DataImport {
             changed = true;
         }
         if (!restLeistung.modulBegriffImKontext) {
-            restLeistung.modulBegriffImKontext = {
-                begriffImKontext: [],
-            };
+            restLeistung.modulBegriffImKontext = [];
             changed = true;
-        } else if (!restLeistung.modulBegriffImKontext.begriffImKontext) {
-            restLeistung.modulBegriffImKontext.begriffImKontext = [];
-            changed = true;
-        } else if (typeof restLeistung.modulBegriffImKontext.begriffImKontext.map !== 'function') {
-            restLeistung.modulBegriffImKontext.begriffImKontext = [restLeistung.modulBegriffImKontext.begriffImKontext as any];
+        } else if (typeof restLeistung.modulBegriffImKontext.map !== 'function'){
+            restLeistung.modulBegriffImKontext = [restLeistung.modulBegriffImKontext as any];
             changed = true;
         }
+        restLeistung.modulBegriffImKontext.forEach(bik => {
+            if (!bik.begriffImKontext) {
+                bik.begriffImKontext = [];
+                changed = true;
+            } else if (typeof bik.begriffImKontext.map !== 'function') {
+                bik.begriffImKontext = [bik.begriffImKontext as any];
+                changed = true;
+            }
+        });
         if (restLeistung.modulFachlicheFreigabe) {
             if (!restLeistung.modulFachlicheFreigabe.fachlichFreigegebenDurch) {
                 restLeistung.modulFachlicheFreigabe.fachlichFreigegebenDurch = [];
@@ -351,7 +364,9 @@ export class DataImport {
             restLeistung.modulUrsprungsportal = [restLeistung.modulUrsprungsportal as any];
             changed = true;
         } else if (restLeistung.modulUrsprungsportal[0] && typeof (restLeistung.modulUrsprungsportal[0] as any).map === 'function') {
-            restLeistung.modulUrsprungsportal = restLeistung.modulUrsprungsportal.flat();
+            while (restLeistung.modulUrsprungsportal[0] && typeof (restLeistung.modulUrsprungsportal[0] as any).map === 'function') {
+                restLeistung.modulUrsprungsportal = restLeistung.modulUrsprungsportal.flat();
+            }
             changed = true;
         }
         return changed;

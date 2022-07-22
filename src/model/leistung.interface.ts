@@ -24,8 +24,10 @@ const sum = (arr: number[]): number => {
 
 export const createLeistung = (leistung: RestLeistung): ILeistung => ({
     id: createID(leistung.id),
-    informationsbereichSDG: leistung.informationsbereichSDG?.code,
-    SDG: leistung.informationsbereichSDG ? 'Ja' : 'Nein',
+    informationsbereichSDG: leistung.informationsbereichSDG.map(i => i.code),
+    anzahlSDG: leistung.informationsbereichSDG.length,
+    primaererSDG: leistung.informationsbereichSDG[0]?.code,
+    SDG: leistung.informationsbereichSDG.length > 0 ? 'Ja' : 'Nein',
     kategorie: leistung.kategorie.map(kategorie => ({
         bezeichnung: kategorie.bezeichnung.map(getMultiLanguage),
         beschreibung: kategorie.beschreibung.map(analyzeText),
@@ -69,7 +71,9 @@ export const createLeistung = (leistung: RestLeistung): ILeistung => ({
 
 export interface ILeistung {
     id: string;
-    informationsbereichSDG?: string;
+    informationsbereichSDG: string[];
+    primaererSDG: string;
+    anzahlSDG: number;
     SDG: 'Ja' | 'Nein';
     kategorie: {
         bezeichnung: MultiLanguageText[];
