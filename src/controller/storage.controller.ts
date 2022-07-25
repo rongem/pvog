@@ -118,7 +118,7 @@ export class Storage {
     }
 
     saveContent = (content: any, index: number, nextIndex: number, url: string) => {
-        const fileName = `../pvog-backup/${index}.json`;
+        const fileName = `../pvog-raw/${index}.json`;
         const rootNode = Object.keys(content).find(n => n !== '?xml')!;
         if (!content[rootNode]) return;
         fs.writeFileSync(fileName, JSON.stringify({
@@ -132,7 +132,7 @@ export class Storage {
     }
 
     loadContent = (index: number): Content | null => {
-        const fileName = `../pvog-backup/${index}.json`;
+        const fileName = `../pvog-raw/${index}.json`;
         if (fs.existsSync(fileName)) {
             const contents = JSON.parse(fs.readFileSync(fileName).toString()) as Content;
             return contents;
