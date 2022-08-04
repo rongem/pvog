@@ -65,6 +65,9 @@ export const createLeistung = (leistung: RestLeistung): ILeistung => ({
     bezeichnungDE: leistung.modulText
         .filter(t => t.leikaTextmodul.code === '03')
         .map(t => t.inhalt.filter(i => i._languageCode === 'de').map(i => i.text).join(';')
+    ).join(';') ?? leistung.modulText
+        .filter(t => t.leikaTextmodul.code === '02')
+        .map(t => t.inhalt.filter(i => i._languageCode === 'de').map(i => i.text).join(';')
     ).join(';'),
     zuletztGeandert: leistung.versionsinformation?.geaendertDatumZeit,
 });
