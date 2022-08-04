@@ -62,8 +62,8 @@ export const createLeistung = (leistung: RestLeistung): ILeistung => ({
     anzahlKategorieBeschreibungenOhneInhalt: sum(leistung.kategorie.map(k => k.beschreibung.filter(b => !b.text).length)),
     anzahlKategorieBezeichnungen: sum(leistung.kategorie.map(k => k.bezeichnung.length)),
     anzahlModulTexte: leistung.modulText.length,
-    leistungsBeschreibungDE: leistung.modulText
-        .filter(t => t.leikaTextmodul.code === '02')
+    bezeichnungDE: leistung.modulText
+        .filter(t => t.leikaTextmodul.code === '03')
         .map(t => t.inhalt.filter(i => i._languageCode === 'de').map(i => i.text).join(';')
     ).join(';'),
     zuletztGeandert: leistung.versionsinformation?.geaendertDatumZeit,
@@ -109,7 +109,7 @@ export interface ILeistung {
     anzahlKategorieBeschreibungenOhneInhalt: number;
     anzahlKategorieBezeichnungen: number;
     anzahlModulTexte: number;
-    leistungsBeschreibungDE: string;
+    bezeichnungDE: string;
     zuletztGeandert: string;
 }
 
