@@ -22,6 +22,19 @@ const sum = (arr: number[]): number => {
     return sum;
 }
 
+const getBezeichnung = (leistung: RestLeistung): string => {
+    let txt = leistung.modulText.filter(t => t.leikaTextmodul.code === '03')
+        .map(t => t.inhalt.filter(i => i._languageCode === 'de').map(i => i.text).join(';')).join(';').trim();
+    if (!txt) {
+        txt = leistung.modulText.filter(t => t.leikaTextmodul.code === '02')
+            .map(t => t.inhalt.filter(i => i._languageCode === 'de').map(i => i.text).join(';')).join(';').trim();
+    }
+    if (!txt) {
+        txt = '<fehlt>';
+    }
+    return txt; 
+}
+
 export const createLeistung = (leistung: RestLeistung): ILeistung => ({
     id: createID(leistung.id),
     informationsbereichSDG: leistung.informationsbereichSDG.map(i => i.code),
@@ -62,10 +75,7 @@ export const createLeistung = (leistung: RestLeistung): ILeistung => ({
     anzahlKategorieBeschreibungenOhneInhalt: sum(leistung.kategorie.map(k => k.beschreibung.filter(b => !b.text).length)),
     anzahlKategorieBezeichnungen: sum(leistung.kategorie.map(k => k.bezeichnung.length)),
     anzahlModulTexte: leistung.modulText.length,
-    bezeichnungDE: leistung.modulText
-        .filter(t => t.leikaTextmodul.code === '03')
-        .map(t => t.inhalt.filter(i => i._languageCode === 'de').map(i => i.text).join(';')
-    ).join(';'),
+    bezeichnungDE: getBezeichnung(leistung),
     zuletztGeandert: leistung.versionsinformation?.geaendertDatumZeit,
 });
 
