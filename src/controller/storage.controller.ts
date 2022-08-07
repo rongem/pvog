@@ -26,6 +26,7 @@ export class Storage {
     private zustFile = '../pvog-data/zustaendigkeiten.csv';
     private servcieZustFile = '../pvog-data/service-zustaendigkeiten.csv';
     private serviceFile = '../pvog-data/online-dienste.json';
+    private timestampFile = '../pvog-data/timestamp.txt';
     private log = Logging.getInstance();
     public startURL = '';
     public nextIndex = 0;
@@ -100,6 +101,8 @@ export class Storage {
         console.log('saving files...');
         this.log.flushLog();
         try {
+            console.log(this.timestampFile);
+            fs.writeFileSync(this.timestampFile, new Date(Date.now()).toISOString());
             console.log(this.leistungFile);
             fs.writeFileSync(this.leistungFile, JSON.stringify(Object.values(this.leistungen)));
             console.log(this.textModulesfile);
