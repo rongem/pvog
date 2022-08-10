@@ -91,7 +91,7 @@ export class Storage {
                 }
             });
         } else {
-            this.startURL = 'https://public.demo.pvog.dataport.de/bereitstelldienst/api/v2/verwaltungsobjekte?index=0&ars=%25'
+            this.startURL = process.env.DATA_URL ?? 'error: missing DATA_URL env variable';
         }
     }
         

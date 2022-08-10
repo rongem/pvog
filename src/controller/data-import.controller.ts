@@ -11,7 +11,7 @@ import { Storage } from './storage.controller';
 
 export class DataImport {
     private storage = new Storage();
-    private authUrl = 'https://private.demo.pvog.dataport.de/auth/realms/pvog/protocol/openid-connect/token';
+    private authUrl = process.env.AUTH_URL ?? 'error: missing AUTH_URL env variable';
     private log = Logging.getInstance();
     private token!: Token;
     private ctr = 0;
