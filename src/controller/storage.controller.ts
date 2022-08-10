@@ -30,7 +30,6 @@ export class Storage {
     private log = Logging.getInstance();
     public startURL = '';
     public nextIndex = 0;
-    private deletionsNW = 0;
 
     constructor() {
         if (fs.existsSync(this.nextUrlSave)) {
@@ -97,7 +96,6 @@ export class Storage {
     }
         
     saveData = (nextUrl: string, nextId: number) => {
-        console.log('deleted NW', this.deletionsNW);
         console.log('saving files...');
         this.log.flushLog();
         try {
@@ -204,9 +202,6 @@ export class Storage {
             this.log.logAction('delete', 'leistung', id);
         } else {
             this.log.logAction('delete', 'leistung', id, 'failed');
-        }
-        if (id.startsWith('L100002_')) {
-            this.deletionsNW++;
         }
     }
 
