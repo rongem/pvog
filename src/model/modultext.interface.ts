@@ -8,6 +8,7 @@ export const createText = (leistung: RestLeistung): IModultext[] => leistung.mod
             text = text.replace(/\s/g, ' ').replace(/&#xa0;/g, ' ').replace(/  +/g, ' ');
             const zeichenAnzahl = text.length;
             const wortAnzahl = text.split(' ').length;
+            const anzahlLinks = t.weiterfuehrenderLink.length;
             if (zeichenAnzahl > 70) {
                 text = text.substring(0, text.indexOf(' ', 25) + 1) + '[...]' + text.substring(text.indexOf(' ', zeichenAnzahl - 30));
             }
@@ -19,6 +20,7 @@ export const createText = (leistung: RestLeistung): IModultext[] => leistung.mod
                 languageCode: i._languageCode!,
                 wortAnzahl,
                 zeichenAnzahl,
+                anzahlLinks,
             };
         });
     } else {
@@ -28,6 +30,7 @@ export const createText = (leistung: RestLeistung): IModultext[] => leistung.mod
             position: t.positionDarstellung,
             wortAnzahl: 0,
             zeichenAnzahl: 0,
+            anzahlLinks: t.weiterfuehrenderLink.length,
         }];
     }
 }).flat();
@@ -40,4 +43,5 @@ export interface IModultext {
     languageCode?: string;
     wortAnzahl: number;
     zeichenAnzahl: number;
+    anzahlLinks: number;
 }

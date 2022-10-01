@@ -26,6 +26,13 @@ export interface RestLeistung {
         positionDarstellung: string;
         inhalt: MultiLanguageText[];
         leikaTextmodul: {code: string};
+        weiterfuehrenderLink: {
+            uri: string;
+            titel: string;
+            beschreibung: string;
+            positionDarstellung: string;
+            _languageCode: string;
+        }[];
     }[];
     modulFrist: { beschreibung: MultiLanguageText[] };
     modulKosten: { beschreibung: MultiLanguageText[] };

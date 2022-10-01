@@ -276,6 +276,13 @@ export class DataImport {
                 text.inhalt = [text.inhalt as any];
                 changed = true;
             }
+            if (!text.weiterfuehrenderLink) {
+                text.weiterfuehrenderLink = [];
+                changed = true;
+            } else if (typeof text.weiterfuehrenderLink.map !== 'function') {
+                text.weiterfuehrenderLink = [text.weiterfuehrenderLink as any];
+                changed = true;
+            }
         });
         if (!restLeistung.sprachversion) {
             restLeistung.sprachversion = [];
