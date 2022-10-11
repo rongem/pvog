@@ -77,6 +77,7 @@ export const createLeistung = (leistung: RestLeistung): ILeistung => ({
     anzahlModulTexte: leistung.modulText.length,
     bezeichnungDE: getBezeichnung(leistung),
     zuletztGeandert: leistung.versionsinformation?.geaendertDatumZeit,
+    fachlichFreigegebenAm: leistung.modulFachlicheFreigabe.fachlichFreigegebenAm,
 });
 
 export interface ILeistung {
@@ -121,5 +122,6 @@ export interface ILeistung {
     anzahlModulTexte: number;
     bezeichnungDE: string;
     zuletztGeandert: string;
+    fachlichFreigegebenAm: string;
 }
 
