@@ -4,7 +4,7 @@ import { createID } from './id.model';
 import { AnalyzedText } from './rest/analyzed-text.model';
 
 const analyzeText = (i: MultiLanguageText): { wortAnzahl: number; zeichenAnzahl: number; languageCode: string; } => {
-    const cleanedText = i.text.replace(/<\/?[^>]+(>|$)/g, '');
+    const cleanedText = i.text?.replace(/<\/?[^>]+(>|$)/g, '') ?? '';
     return {
         wortAnzahl: cleanedText.split(' ').length,
         zeichenAnzahl: cleanedText.length,
