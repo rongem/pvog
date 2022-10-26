@@ -21,6 +21,7 @@ export const createText = (leistung: RestLeistung): IModultext[] => leistung.mod
                 wortAnzahl,
                 zeichenAnzahl,
                 anzahlLinks,
+                linkOderInhalt: (text && text.length > 0) || anzahlLinks > 0,
             };
         });
     } else {
@@ -31,6 +32,7 @@ export const createText = (leistung: RestLeistung): IModultext[] => leistung.mod
             wortAnzahl: 0,
             zeichenAnzahl: 0,
             anzahlLinks: t.weiterfuehrenderLink.length,
+            linkOderInhalt: t.weiterfuehrenderLink.length > 0,
         }];
     }
 }).flat();
@@ -44,4 +46,5 @@ export interface IModultext {
     wortAnzahl: number;
     zeichenAnzahl: number;
     anzahlLinks: number;
+    linkOderInhalt: boolean;
 }
