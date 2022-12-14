@@ -3,6 +3,7 @@ import { RestZustaendigkeitTransferObjekt } from './rest/zustaendigkeit.model';
 
 export interface Zustaendigkeit {
   id: string;
+  mandant: string;
   uebergeordnetesObjektID: string,
   leistungID: string;
   zustaendigkeitsSchema: string;
@@ -11,6 +12,7 @@ export interface Zustaendigkeit {
 
 export const createZustaendigkeit = (zust: RestZustaendigkeitTransferObjekt): Zustaendigkeit => ({
   id: createID(zust.zustaendigkeit.id),
+  mandant: zust.zustaendigkeit.id._schemeAgencyID,
   uebergeordnetesObjektID: createID(zust.uebergeordnetesObjektID),
   leistungID: createID(zust.zustaendigkeit.leistungID),
   zustaendigkeitsSchema: zust.zustaendigkeit.id._schemeID,

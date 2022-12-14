@@ -15,7 +15,7 @@ import { RestOnlineDienst } from '../model/rest/online-dienst.model';
 export class Storage {
     private leistungen: {[key: string]: ILeistung} = {};
     private organisationseinheiten: {[key: string]: Organisation} = {};
-    private zustaendigkeiten: {[key: string]: Zustaendigkeit} = {};
+    private zustaendigkeiten: {[key: string]: {[key: string]: Zustaendigkeit}} = {};
     private serviceZustaendigkeiten: {[key: string]: Zustaendigkeit} = {};
     private services: {[key: string]: OnlineDienst} = {};
     private texte: {[key: string]: IModultext[]} = {};
@@ -65,13 +65,15 @@ export class Storage {
                     const values = z.split('\t');
                     const zust: Zustaendigkeit = {
                         id: values[0],
+                        mandant: values[0].split('_')[0],
                         leistungID: values[1],
                         uebergeordnetesObjektID: values[2],
                         gebietId: values[3],
                         zustaendigkeitsSchema: 'ZustaendigkeitOrganisationseinheit',
                     };
-                    this.zustaendigkeiten[zust.id] = zust;
+                    this.storeZustaendigkeit(zust);
                 }
+
             });
             console.log(this.servcieZustFile);
             zuBuff = fs.readFileSync(this.servcieZustFile);
@@ -82,6 +84,7 @@ export class Storage {
                     const values = z.split('\t');
                     const zust: Zustaendigkeit = {
                         id: values[0],
+                        mandant: values[0].split('_')[0],
                         leistungID: values[1],
                         uebergeordnetesObjektID: values[2],
                         gebietId: values[3],
@@ -95,6 +98,13 @@ export class Storage {
         }
     }
         
+    private storeZustaendigkeit(zust: Zustaendigkeit) {
+        if (!this.zustaendigkeiten[zust.mandant]) {
+            this.zustaendigkeiten[zust.mandant] = {};
+        }
+        this.zustaendigkeiten[zust.mandant][zust.id] = zust;
+    }
+
     saveData = (nextUrl: string, nextId: number) => {
         console.log('saving files...');
         this.log.flushLog();
@@ -147,17 +157,18 @@ export class Storage {
         let keys = Object.keys(this.zustaendigkeiten);
         let content = headers;
         let round = 0;
-        keys.forEach((key, i) => {
-            const element = this.zustaendigkeiten[key];
-            content += element.id + '\t' + element.leistungID + '\t' + element.uebergeordnetesObjektID + '\t' + element.gebietId + '\n';
-            if (Math.trunc(i / 2000000) > round) {
-                console.log('Writing part', round);
-                this.writeOrAppend(this.zustFile, content, round);
-                round++;
-                content = '';
-            }
-        });
-        this.writeOrAppend(this.zustFile, content, round);
+        for (let key of keys) {
+            const mandant = this.zustaendigkeiten[key];
+            const mkeys = Object.keys(mandant);
+            for (let mkey of mkeys) {
+                const element = mandant[mkey];
+                content += element.id + '\t' + element.leistungID + '\t' + element.uebergeordnetesObjektID + '\t' + element.gebietId + '\n';
+            };
+            console.log('Writing part', round, ': ', key);
+            this.writeOrAppend(this.zustFile, content, round);
+            round++;
+            content = '';
+        };
         console.log(this.servcieZustFile);
         keys = Object.keys(this.serviceZustaendigkeiten);
         content = headers;
@@ -234,7 +245,7 @@ export class Storage {
                         // this.log.logAction('create', 'zustaendigkeit', zust.id)
                         this.leistungen[zust.leistungID].anzahlOEs++;
                     }
-                    this.zustaendigkeiten[zust.id] = zust;
+                    this.storeZustaendigkeit(zust);
                     break;
                 case 'ZustaendigkeitOnlinedienst':
                     if (!!this.serviceZustaendigkeiten[zust.id]) {
@@ -258,9 +269,10 @@ export class Storage {
     }
     
     removeZustaendigkeit(id: string) {
-        if (this.zustaendigkeiten[id]) {
-            this.leistungen[this.zustaendigkeiten[id].leistungID].anzahlOEs--;
-            delete this.zustaendigkeiten[id];
+        const mandant = id.split('_')[0];
+        if (this.zustaendigkeiten[mandant][id]) {
+            this.leistungen[this.zustaendigkeiten[mandant][id].leistungID].anzahlOEs--;
+            delete this.zustaendigkeiten[mandant][id];
             // this.log.logAction('delete', 'zustaendigkeit', id);
             return true;
         } else if (this.serviceZustaendigkeiten[id]) {
