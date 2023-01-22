@@ -1,5 +1,6 @@
 import { decode, JwtPayload } from 'jsonwebtoken';
 
+// Authentifizierungs-Token für PVOG
 export class Token {
     private _token: string;
     private _obj: JwtPayload;

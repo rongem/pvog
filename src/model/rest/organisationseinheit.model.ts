@@ -1,5 +1,7 @@
 import { RestID } from './rest-id.model'
 
+// XZuFi-Orgabnisationseinhelt
+// irrelevant für SDG, außerdem unzuverlässig gefüllt
 export interface RestOrganisationsEinheit {
     id: RestID;
     name: {

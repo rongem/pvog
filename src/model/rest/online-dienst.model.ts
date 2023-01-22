@@ -1,6 +1,8 @@
-import { MultiLanguageText } from '../ml-text.model';
+import { MultiLanguageText } from './ml-text.model';
 import { RestID } from './rest-id.model';
 
+// XZuFi-OnlineService
+// irrelevant für SDG
 export interface RestOnlineDienst {
     id: RestID;
     bezeichnung: MultiLanguageText[];

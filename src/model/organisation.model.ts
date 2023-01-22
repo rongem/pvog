@@ -1,6 +1,8 @@
 import { createID } from './id.model';
 import { RestOrganisationsEinheit } from './rest/organisationseinheit.model';
 
+// Organisationsobjekt
+// irrelevant für SDG, außerdem unzuverlässig
 export interface Organisation {
     id: string;
     name: string;
@@ -14,13 +16,16 @@ export interface Organisation {
     }[];
 }
 
+// Erzeugt eine Organisation aus einem XZuFi-Objekt
 export const createOrganisation = (orgEinheit: RestOrganisationsEinheit): Organisation => {
+    // Anschriften in ein Array verwandeln, falls das nicht gegeben ist
     if (!orgEinheit.anschrift) {
         orgEinheit.anschrift = [];
     }
     if (orgEinheit.anschrift && typeof orgEinheit.anschrift.map !== 'function') {
         orgEinheit.anschrift = [orgEinheit.anschrift as any];
     }
+    // Objekt zurückgeben
     return {
         id: createID(orgEinheit.id),
         name: orgEinheit.name.name.find(n => n._languageCode === 'de')?.text ?? '',

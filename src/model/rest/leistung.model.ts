@@ -1,6 +1,7 @@
-import { MultiLanguageText } from '../ml-text.model';
+import { MultiLanguageText } from './ml-text.model';
 import { RestID } from './rest-id.model';
 
+// Leistungsobjekt XZuFI
 export interface RestLeistung {
     id: RestID;
     struktur: {

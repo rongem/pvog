@@ -23,6 +23,7 @@ export class DataImport {
         numberParseOptions: {leadingZeros: true, hex: false, skipLike: /[0-9]+/}
     });
     
+    // Authentifizierung am System
     getToken = async () => {
         const content = new URLSearchParams({
             'grant_type': 'client_credentials',
@@ -33,9 +34,12 @@ export class DataImport {
         return new Token(result.data['token_type'], result.data['access_token']);
     }
     
+    // nächsten Block aus dem Cache bzw. vom PVOG holen
     getNextContent = async (currentId: number, url: string): Promise<Content> => {
+        // zuerst prüfen, ob bereits im Cache die Informationen vorhanden sind
         let fileContent = this.storage.loadContent(currentId);
         if (fileContent) {
+            // falls ja direkt die Daten zurückgeben, sofern es sich nicht um ein leeres Objekt handelt
             const rootNode = Object.keys(fileContent.content).find(n => n !== '?xml')!;
             if (fileContent.content[rootNode]) {
                 // if (this.sanitizeContent(fileContent.content)) {
@@ -46,13 +50,17 @@ export class DataImport {
                 return fileContent;
             }
         }
+        // Authentifizierungstoken holen bzw. erneuern
         if (!this.token || this.token.expired) {
             this.token = await this.getToken();
         }
+        // Inhalt vom Bereitstelldienst lesen und in JSON konvertireen
         const result = await axios.get(url, {headers: {'Authorization': this.token.authorization}});
         const xmlContent = (result.data['xzufiObjekte'] as string);
         const content = this.parser.parse(xmlContent);
+        // Inhalt bereinigen
         this.sanitizeContent(content);
+        // Inhalt im Cache speichern
         fileContent = {
             complete: result.data['vollstaendig'] as boolean,
             content,
@@ -61,24 +69,38 @@ export class DataImport {
             url: result.data['naechsteAnfrageUrl'] as string,
         };
         this.storage.saveContent(fileContent.content, currentId, fileContent.nextIndex, fileContent.url);
+        // Inhalt zurückgeben
         return fileContent;
     }
     
+    // Synchronisationslauf durchführen
     getData = async () => {
+        // Startzeit für statistische Zwecke holen
         const startTime = Date.now();
+        // Content initialisieren
         let content: Content = {complete: false, nextIndex: this.storage.nextIndex, url: this.storage.startURL, content: undefined, fromFile: false};
+        // In einer Schleife alle Content-Objekte lesen
         while(!content.complete) {
+            // Der PVOG löscht Zuständigkeiten auch rückwirkend, behält aber die Löschung bei. Dadurch entstehen mehrere Millionen verwaiste Löschungen
             const orphanedDeletions: number[] = [];
+            // Aktuelle Position und URL ausgeben
             console.log(this.ctr++, content.url);
+            // Zähler aktualisieren
             const currentId = content.nextIndex;
             // this.log.logAction('fetching', 'url #' + this.ctr, content.url);
+            // Nächsten Block holen
             content = await this.getNextContent(currentId, content.url);
+            // Sofern Inhalt vorliegt, diesen anaylisieren
             if (content.content) {
+                // Ersten Knoten finden, der nicht der XML-Knoten ist
                 const rootNode = Object.keys(content.content).find(n => n !== '?xml')!;
+                // Sofern ein solcher Knoten existiert (es gibt auch leere Antworten), ...
                 if (content.content[rootNode]) {
+                    // XZuFi kennt zwei primäre Knotentypen: schreibe für create und update und loesche für delete
                     let writables = content.content[rootNode]['schreibe'] as Array<any>;
                     let deletables = content.content[rootNode]['loesche'] as Array<any>;
                     if (writables) {
+                        // Für jedes schreibe untersuchen, um was es sich handelt, und die entsprechenden Daten erzeugen
                         writables.forEach(entry => {
                             switch (Object.keys(entry)[0]) {
                                 case 'leistung':
@@ -103,13 +125,17 @@ export class DataImport {
                         });
                     }
                     if (deletables) {
+                        // es kommt vor, dass nur ein einzelnes loesche-Objekt existiert, deshalb sicherstellen, dass es in einem Array liegt
+                        // Für schreibe geschieht dies bereits in der Sanitize-Funktion, weshalb es hier kein zweites Mal getan wird
                         if (typeof deletables.forEach !== 'function') {
                             deletables = [deletables as any];
                         }
+                        // Analysieren, um welches Objekttyp es sich handelt, und entsprechend verfahren
                         deletables.forEach((entry, index) => {
                             const id = createID(entry.id);
                             switch(entry._klasse) {
                                 case 'Zustaendigkeit':
+                                    // Verwaiste Löschungen von Zuständigkeiten erkennen
                                     if (!this.storage.removeZustaendigkeit(id)) {
                                         orphanedDeletions.push(index);
                                     }
@@ -131,6 +157,7 @@ export class DataImport {
                             }
                         });
                     }
+                    // Sofern verwaiste Löschungen enthalten sind, diese aus dem XZuFi entfernen, um Zeit zu sparen, und Datei neu speichern
                     if (orphanedDeletions.length > 0) {
                         orphanedDeletions.reverse().forEach(d => deletables.splice(d, 1));
                         this.storage.saveContent(content.content, currentId, content.nextIndex, content.url);
@@ -138,39 +165,45 @@ export class DataImport {
                 }
             }
         }
+        // Zeit für den Durchlauf in Minuten angeben
         console.log(
             'Minuten:', Math.round((Date.now().valueOf() - startTime) / 6000) / 10,
         );
+        // Speichern der In-Memory-Datenbank, und Zeit dafür angeben
         this.storage.saveData(content.url, content.nextIndex);
         console.log('Minuten:', Math.round((Date.now().valueOf() - startTime) / 6000) / 10);
     }
 
+    // Korrigieren von XML-Formatproblemen. XML kennt keine Arrays, weshalb beim Parsen häufig keine Eigenschaft oder ein Objekt gesetzt wird.
     private sanitizeContent(content: any): boolean {
+        // Root-Node ist der erste Node, der nicht ?xml heißt.
         const rootNode = Object.keys(content).find(n => n !== '?xml')!;
+        // Abbrechen, wenn kein Rootnode vorhanden ist.
         if (!content[rootNode]) return false;
+        // Prüfen, ob sich unbekannte Node-Typen im XML befinden, und diese protokollieren
         const nodes = Object.keys(content[rootNode]).filter(n => !['schreibe', 'loesche', 'nachrichtenkopf', '_produktbezeichnung', '_produkthersteller', '_xzufiVersion'].includes(n));
         if (nodes.length > 0) {
             this.log.logAction('Extracting', 'unknown node types', nodes.join(', '), 'failed');
         }
+        // Nur Nodes vom Typ schreibe müssen korrigiert werden
         let schreibe = content[rootNode]['schreibe'];
         let changed = false;
         if (schreibe) {
+            // Prüfen, ob nicht nur ein Node vom Typ schreibe vorliegt, und diesen ggf. in ein Array verwandeln
             if (typeof schreibe.forEach !== 'function') {
                 content[rootNode]['schreibe'] = [schreibe];
                 schreibe = content[rootNode]['schreibe'];
                 changed = true;
             }
+            // Prüfen, welcher Typ vorliegt, und entsprechend bereinigen
+            // Nicht alle Typen sind relevant, daher einiges auskommentiert
             schreibe.forEach((entry: any) => {
                 switch (Object.keys(entry)[0]) {
                     case 'leistung':
-                        // const cb1 = changed;
                         changed = this.sanitizeLeistung(entry['leistung']) || changed;
-                        // if (cb1 !== changed) console.log(1);
                         break;
                     case 'organisationseinheit':
-                        // const cb2 = changed;
                         changed = this.sanitizeOrganisationsEinheit(entry['organisationseinheit']) || changed;
-                        // if (cb2 !== changed) console.log(2);
                         break;
                     // case 'zustaendigkeitTransferObjekt':
                     //     break;
@@ -184,6 +217,7 @@ export class DataImport {
                 }
             });
         }
+        // Loesche-Knoten ebenfalls in ein Array verwandeln. Ggf. redundant?
         const loesche = content[rootNode]['loesche'];
         if (loesche) {
             if (typeof loesche.forEach !== 'function') {
@@ -191,9 +225,11 @@ export class DataImport {
                 changed = true;
             }
         }
+        // Gibt an, ob etwas geändert wurde, und ggf. neu gespeichert werden muss.
         return changed;
     }
 
+    // ein Leistungsobjekt bereinigen. Überall, wo ein Array sein müsste, wird eines erzeugt, entweder leer oder mit nur einem Element.
     private sanitizeLeistung(restLeistung: RestLeistung): boolean {
         let changed = false;
         if (restLeistung.struktur) {
@@ -379,6 +415,7 @@ export class DataImport {
         return changed;
     }
 
+    // Bereinige Organisationseinheiten. Überall, wo ein Array sein müsste, wird eines erzeugt, entweder leer oder mit nur einem Element.
     private sanitizeOrganisationsEinheit(oe: RestOrganisationsEinheit): boolean {
         let changed = false;
         if (oe.name) {
@@ -400,6 +437,7 @@ export class DataImport {
         return changed;
     }
 
+    // Bereinige OnlineDienste. Überall, wo ein Array sein müsste, wird eines erzeugt, entweder leer oder mit nur einem Element.
     private sanitizeOnlineDienst(sv: RestOnlineDienst): boolean {
         let changed = false;
         if (!sv.bezeichnung) {

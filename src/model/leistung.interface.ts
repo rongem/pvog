@@ -1,8 +1,9 @@
 import { RestLeistung } from './rest/leistung.model';
-import { MultiLanguageText } from './ml-text.model';
+import { MultiLanguageText } from './rest/ml-text.model';
 import { createID } from './id.model';
-import { AnalyzedText } from './rest/analyzed-text.model';
+import { AnalyzedText } from './analyzed-text.model';
 
+// Analyisert einen XZuFi-Text
 const analyzeText = (i: MultiLanguageText): { wortAnzahl: number; zeichenAnzahl: number; languageCode: string; } => {
     const cleanedText = i.text?.replace(/<\/?[^>]+(>|$)/g, '') ?? '';
     return {
@@ -11,6 +12,7 @@ const analyzeText = (i: MultiLanguageText): { wortAnzahl: number; zeichenAnzahl:
         languageCode: i._languageCode!,
     };
 };
+// Wandelt ein XZuFi-Text-Objekt in ein eindeutiges Textobjekt um
 const getMultiLanguage = (b: MultiLanguageText): { text: string; languageCode: string; } => ({
     text: b.text,
     languageCode: b._languageCode!,
@@ -22,6 +24,7 @@ const sum = (arr: number[]): number => {
     return sum;
 }
 
+// holt die deutsche Leistungsbezeichnung, entweder aus Textmodul II oder, falls nicht vorhanden, aus I
 const getBezeichnung = (leistung: RestLeistung): string => {
     let txt = leistung.modulText.filter(t => t.leikaTextmodul.code === '03')
         .map(t => t.inhalt.filter(i => i._languageCode === 'de').map(i => i.text).join(';')).join(';').trim();
@@ -35,6 +38,7 @@ const getBezeichnung = (leistung: RestLeistung): string => {
     return txt; 
 }
 
+// Erzeugt ein Leistungsobjekt aus einer XZuFi-Leistung
 export const createLeistung = (leistung: RestLeistung): ILeistung => ({
     id: createID(leistung.id),
     informationsbereichSDG: leistung.informationsbereichSDG.map(i => i.code),
@@ -80,6 +84,7 @@ export const createLeistung = (leistung: RestLeistung): ILeistung => ({
     fachlichFreigegebenAm: leistung.modulFachlicheFreigabe?.fachlichFreigegebenAm,
 });
 
+// Leistungsobjekt
 export interface ILeistung {
     id: string;
     informationsbereichSDG: string[];

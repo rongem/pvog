@@ -1,5 +1,6 @@
 import fs from 'fs';
 
+// Internes Protokoll zur Fehleranalyse. Wird derzeit nicht mehr verwendet
 export class Logging {
     private _log: string[] = [];
     private static _logging: Logging;

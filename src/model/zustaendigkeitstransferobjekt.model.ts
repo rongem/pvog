@@ -1,6 +1,7 @@
 import { createID } from './id.model';
 import { RestZustaendigkeitTransferObjekt } from './rest/zustaendigkeit.model';
 
+// Zuständigkeits-Objekt
 export interface Zustaendigkeit {
   id: string;
   mandant: string;
@@ -10,6 +11,7 @@ export interface Zustaendigkeit {
   gebietId: string;
 }
 
+// Wandelt eine XZuFi-Zuständigkeit in ein Zuständigkeitsobjekt um
 export const createZustaendigkeit = (zust: RestZustaendigkeitTransferObjekt): Zustaendigkeit => ({
   id: createID(zust.zustaendigkeit.id),
   mandant: zust.zustaendigkeit.id._schemeAgencyID,

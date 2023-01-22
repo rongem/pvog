@@ -1,17 +1,26 @@
 import { createID } from './id.model';
 import { RestLeistung } from './rest/leistung.model';
 
+// ModulText-Objekt erzeugen
 export const createText = (leistung: RestLeistung): IModultext[] => leistung.modulText.map(t => {
+    // Prüfen, ob ein Inhalt für den Text vorliegt
     if (t.inhalt && t.inhalt.length > 0) {
         return t.inhalt.map(i => {
+            // HTML-Tags entfernen
             let text = i.text.replace(/<\/?[^>]+(>|$)/g, '').replace(/^-/, '').trim();
+            // Text auf eine Zeile reduzieren (CR+LF durch Leerzeichen ersetzen)
             text = text.replace(/\s/g, ' ').replace(/&#xa0;/g, ' ').replace(/  +/g, ' ');
+            // Anzahl der Zeichen ermitteln
             const zeichenAnzahl = text.length;
+            // Anzahl der Worte ermitteln
             const wortAnzahl = text.split(' ').length;
+            // Anzahl Links ermitteln
             const anzahlLinks = t.weiterfuehrenderLink.length;
+            // Text auf 70 Zeichen begrenzen, indem die Mitte herausgeschnitten wird
             if (zeichenAnzahl > 70) {
                 text = text.substring(0, text.indexOf(' ', 25) + 1) + '[...]' + text.substring(text.indexOf(' ', zeichenAnzahl - 30));
             }
+            // Textobjekt zurückgeben
             return {
                 id: createID(leistung.id),
                 text,
@@ -25,6 +34,7 @@ export const createText = (leistung: RestLeistung): IModultext[] => leistung.mod
             };
         });
     } else {
+        // leeres Textobjekt zurückgeben
         return [{
             id: createID(leistung.id),
             leikaTextmodul: t.leikaTextmodul.code,
@@ -37,6 +47,7 @@ export const createText = (leistung: RestLeistung): IModultext[] => leistung.mod
     }
 }).flat();
 
+// Definition ModulText
 export interface IModultext {
     id: string;
     leikaTextmodul: string;
