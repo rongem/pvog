@@ -188,29 +188,30 @@ export class DataImport {
         // Nur Nodes vom Typ schreibe müssen korrigiert werden
         let schreibe = content[rootNode]['schreibe'];
         let changed = false;
+        const setChangedTrue = () => changed = true;
         if (schreibe) {
             // Prüfen, ob nicht nur ein Node vom Typ schreibe vorliegt, und diesen ggf. in ein Array verwandeln
             if (typeof schreibe.forEach !== 'function') {
                 content[rootNode]['schreibe'] = [schreibe];
                 schreibe = content[rootNode]['schreibe'];
-                changed = true;
+                setChangedTrue();
             }
             // Prüfen, welcher Typ vorliegt, und entsprechend bereinigen
             // Nicht alle Typen sind relevant, daher einiges auskommentiert
             schreibe.forEach((entry: any) => {
                 switch (Object.keys(entry)[0]) {
                     case 'leistung':
-                        changed = this.sanitizeLeistung(entry['leistung']) || changed;
+                        entry['leistung'] = this.sanitizeLeistung(entry['leistung'], setChangedTrue);
                         break;
                     case 'organisationseinheit':
-                        changed = this.sanitizeOrganisationsEinheit(entry['organisationseinheit']) || changed;
+                        entry['organisationseinheit'] = this.sanitizeOrganisationsEinheit(entry['organisationseinheit'], setChangedTrue);
                         break;
                     // case 'zustaendigkeitTransferObjekt':
                     //     break;
                     // case 'spezialisierung':
                     //     break;
                     case 'onlinedienst':
-                        changed = this.sanitizeOnlineDienst(entry['onlinedienst']) || changed;
+                        entry['onlinedienst'] = this.sanitizeOnlineDienst(entry['onlinedienst'], setChangedTrue);
                         break;
                     default:
                         break;
@@ -230,235 +231,96 @@ export class DataImport {
     }
 
     // ein Leistungsobjekt bereinigen. Überall, wo ein Array sein müsste, wird eines erzeugt, entweder leer oder mit nur einem Element.
-    private sanitizeLeistung(restLeistung: RestLeistung): boolean {
-        let changed = false;
+    private sanitizeLeistung(restLeistung: RestLeistung, setChangedTrue: Function): RestLeistung {
         if (restLeistung.struktur) {
-            if (!restLeistung.struktur.verrichtungsdetail) {
-                restLeistung.struktur.verrichtungsdetail = [];
-                changed = true;
-            } else if (typeof restLeistung.struktur.verrichtungsdetail.map !== 'function') {
-                restLeistung.struktur.verrichtungsdetail = [restLeistung.struktur.verrichtungsdetail as any];
-                changed = true;
-            } else if (restLeistung.struktur.verrichtungsdetail[0] && typeof (restLeistung.struktur.verrichtungsdetail[0] as any).map === 'function') {
+            restLeistung.struktur.verrichtungsdetail = this.sanitizeUnknownToArrayAndAlertChanged(restLeistung.struktur.verrichtungsdetail, setChangedTrue);
+            if (restLeistung.struktur.verrichtungsdetail[0] && typeof (restLeistung.struktur.verrichtungsdetail[0] as any).map === 'function') {
                 while (restLeistung.struktur.verrichtungsdetail[0] && typeof (restLeistung.struktur.verrichtungsdetail[0] as any).map === 'function') {
                     restLeistung.struktur.verrichtungsdetail = restLeistung.struktur.verrichtungsdetail.flat();
                 }
-                changed = true;
+                setChangedTrue();
             }
         }
-        if (!restLeistung.informationsbereichSDG) {
-            restLeistung.informationsbereichSDG = [];
-            changed = true;
-        } else if (typeof restLeistung.informationsbereichSDG.map !== 'function') {
-            restLeistung.informationsbereichSDG = [restLeistung.informationsbereichSDG as any];
-            changed = true;
-        }
-        if (!restLeistung.kategorie) {
-            restLeistung.kategorie = [];
-            changed = true;
-        } else if (typeof restLeistung.kategorie.map !== 'function') {
-            restLeistung.kategorie = [restLeistung.kategorie as any];
-            changed = true;
-        }
+        restLeistung.informationsbereichSDG = this.sanitizeUnknownToArrayAndAlertChanged(restLeistung.informationsbereichSDG, setChangedTrue);
+        restLeistung.kategorie = this.sanitizeUnknownToArrayAndAlertChanged(restLeistung.kategorie, setChangedTrue);
         restLeistung.kategorie.forEach(kategorie => {
-            if (!kategorie.bezeichnung) {
-                kategorie.bezeichnung = [];
-                changed = true;
-            } else if (typeof kategorie.bezeichnung.map !== 'function') {
-                kategorie.bezeichnung = [kategorie.bezeichnung as any];
-                changed = true;
-            }
-            if (!kategorie.beschreibung) {
-                kategorie.beschreibung = [];
-                changed = true;
-            } else if (typeof kategorie.beschreibung.map !== 'function') {
-                kategorie.beschreibung = [kategorie.beschreibung as any];
-                changed = true;
-            }
-            if (!kategorie.klasse) {
-                kategorie.klasse = [];
-                changed = true;
-            } else if (typeof kategorie.klasse.map !== 'function') {
-                kategorie.klasse = [kategorie.klasse as any];
-                changed = true;
-            }
+            kategorie.bezeichnung = this.sanitizeUnknownToArrayAndAlertChanged(kategorie.bezeichnung, setChangedTrue);
+            kategorie.beschreibung = this.sanitizeUnknownToArrayAndAlertChanged(kategorie.beschreibung, setChangedTrue);
+            kategorie.klasse = this.sanitizeUnknownToArrayAndAlertChanged(kategorie.klasse, setChangedTrue);
         });
-        if (!restLeistung.referenzLeiKa) {
-            restLeistung.referenzLeiKa = [];
-            changed = true;
-        } else if (typeof restLeistung.referenzLeiKa.map !== 'function') {
-            restLeistung.referenzLeiKa = [restLeistung.referenzLeiKa as any];
-            changed = true;
-        }
-        if (!restLeistung.typisierung) {
-            restLeistung.typisierung = [];
-            changed = true;
-        } else if (typeof restLeistung.typisierung.map !== 'function') {
-            restLeistung.typisierung = [restLeistung.typisierung as any];
-                changed = true;
-        }
-        if (!restLeistung.modulText) {
-            restLeistung.modulText = [];
-            changed = true;
-        } else if (typeof restLeistung.modulText.map !== 'function') {
-            restLeistung.modulText = [restLeistung.modulText as any];
-                changed = true;
-        }
+        restLeistung.referenzLeiKa = this.sanitizeUnknownToArrayAndAlertChanged(restLeistung.referenzLeiKa, setChangedTrue);
+        restLeistung.typisierung = this.sanitizeUnknownToArrayAndAlertChanged(restLeistung.typisierung, setChangedTrue);
+        restLeistung.modulText = this.sanitizeUnknownToArrayAndAlertChanged(restLeistung.modulText, setChangedTrue);
         restLeistung.modulText.forEach(text => {
-            if (!text.inhalt) {
-                text.inhalt = [];
-                changed = true;
-            } else if (typeof text.inhalt.map !== 'function') {
-                text.inhalt = [text.inhalt as any];
-                changed = true;
-            }
-            if (!text.weiterfuehrenderLink) {
-                text.weiterfuehrenderLink = [];
-                changed = true;
-            } else if (typeof text.weiterfuehrenderLink.map !== 'function') {
-                text.weiterfuehrenderLink = [text.weiterfuehrenderLink as any];
-                changed = true;
-            }
+            text.inhalt = this.sanitizeUnknownToArrayAndAlertChanged(text.inhalt, setChangedTrue);
+            text.weiterfuehrenderLink = this.sanitizeUnknownToArrayAndAlertChanged(text.weiterfuehrenderLink, setChangedTrue);
         });
-        if (!restLeistung.sprachversion) {
-            restLeistung.sprachversion = [];
-            changed = true;
-        } else if (typeof restLeistung.sprachversion.map !== 'function') {
-            restLeistung.sprachversion = [restLeistung.sprachversion as any];
-            changed = true;
-        }
-        if (!restLeistung.modulBearbeitungsdauer) {
-            restLeistung.modulBearbeitungsdauer = {
-                beschreibung: []
-            };
-            changed = true;
-        } else if (!restLeistung.modulBearbeitungsdauer.beschreibung) {
-            restLeistung.modulBearbeitungsdauer.beschreibung = [];
-            changed = true;
-        } else if (typeof restLeistung.modulBearbeitungsdauer.beschreibung.map !== 'function') {
-            restLeistung.modulBearbeitungsdauer.beschreibung = [restLeistung.modulBearbeitungsdauer.beschreibung as any];
-            changed = true;
-        }
-        if (!restLeistung.modulBegriffImKontext) {
-            restLeistung.modulBegriffImKontext = [];
-            changed = true;
-        } else if (typeof restLeistung.modulBegriffImKontext.map !== 'function'){
-            restLeistung.modulBegriffImKontext = [restLeistung.modulBegriffImKontext as any];
-            changed = true;
-        }
+        restLeistung.sprachversion = this.sanitizeUnknownToArrayAndAlertChanged(restLeistung.sprachversion, setChangedTrue);
+        restLeistung.modulBearbeitungsdauer = this.sanitizeObjectWithBeschreibungArrayAndAlertChanged(restLeistung.modulBearbeitungsdauer, setChangedTrue);
+        restLeistung.modulBegriffImKontext = this.sanitizeUnknownToArrayAndAlertChanged(restLeistung.modulBegriffImKontext, setChangedTrue);
         restLeistung.modulBegriffImKontext.forEach(bik => {
-            if (!bik.begriffImKontext) {
-                bik.begriffImKontext = [];
-                changed = true;
-            } else if (typeof bik.begriffImKontext.map !== 'function') {
-                bik.begriffImKontext = [bik.begriffImKontext as any];
-                changed = true;
-            }
+            bik.begriffImKontext = this.sanitizeUnknownToArrayAndAlertChanged(bik.begriffImKontext, setChangedTrue);
         });
         if (restLeistung.modulFachlicheFreigabe) {
-            if (!restLeistung.modulFachlicheFreigabe.fachlichFreigegebenDurch) {
-                restLeistung.modulFachlicheFreigabe.fachlichFreigegebenDurch = [];
-                changed = true;
-            } else if (typeof restLeistung.modulFachlicheFreigabe.fachlichFreigegebenDurch.map !== 'function') {
-                restLeistung.modulFachlicheFreigabe.fachlichFreigegebenDurch = [restLeistung.modulFachlicheFreigabe.fachlichFreigegebenDurch as any];
-                changed = true;
-            }
+            restLeistung.modulFachlicheFreigabe.fachlichFreigegebenDurch =
+                this.sanitizeUnknownToArrayAndAlertChanged(restLeistung.modulFachlicheFreigabe.fachlichFreigegebenDurch, setChangedTrue);
         }
-        if (!restLeistung.modulFrist) {
-            restLeistung.modulFrist = {
-                beschreibung: []
-            };
-            changed = true;
-        } else if (!restLeistung.modulFrist.beschreibung) {
-            restLeistung.modulFrist.beschreibung = [];
-            changed = true;
-        } else if (typeof restLeistung.modulFrist.beschreibung.map !== 'function') {
-            restLeistung.modulFrist.beschreibung = [restLeistung.modulFrist.beschreibung as any];
-            changed = true;
-        }
-        if (!restLeistung.modulKosten) {
-            restLeistung.modulKosten = {
-                beschreibung: []
-            };
-            changed = true;
-        } else if (!restLeistung.modulKosten.beschreibung) {
-            restLeistung.modulKosten.beschreibung = [];
-            changed = true;
-        } else if (typeof restLeistung.modulKosten.beschreibung.map !== 'function') {
-            restLeistung.modulKosten.beschreibung = [restLeistung.modulKosten.beschreibung as any];
-            changed = true;
-        }
-        if (!restLeistung.modulBearbeitungsdauer) {
-            restLeistung.modulBearbeitungsdauer = {
-                beschreibung: []
-            };
-            changed = true;
-        } else if (!restLeistung.modulBearbeitungsdauer.beschreibung) {
-            restLeistung.modulBearbeitungsdauer.beschreibung = [];
-            changed = true;
-        } else if (typeof restLeistung.modulBearbeitungsdauer.beschreibung.map !== 'function') {
-            restLeistung.modulBearbeitungsdauer.beschreibung = [restLeistung.modulBearbeitungsdauer.beschreibung as any];
-            changed = true;
-        }
-        if (!restLeistung.modulUrsprungsportal) {
-            restLeistung.modulUrsprungsportal = [];
-            changed = true;
-        } else if (typeof restLeistung.modulUrsprungsportal.map !== 'function') {
-            restLeistung.modulUrsprungsportal = [restLeistung.modulUrsprungsportal as any];
-            changed = true;
-        } else if (restLeistung.modulUrsprungsportal[0] && typeof (restLeistung.modulUrsprungsportal[0] as any).map === 'function') {
+        restLeistung.modulFrist = this.sanitizeObjectWithBeschreibungArrayAndAlertChanged(restLeistung.modulFrist, setChangedTrue);
+        restLeistung.modulKosten = this.sanitizeObjectWithBeschreibungArrayAndAlertChanged(restLeistung.modulKosten, setChangedTrue);
+        restLeistung.modulBearbeitungsdauer = this.sanitizeObjectWithBeschreibungArrayAndAlertChanged(restLeistung.modulBearbeitungsdauer, setChangedTrue);
+        restLeistung.modulUrsprungsportal = this.sanitizeUnknownToArrayAndAlertChanged(restLeistung.modulUrsprungsportal, setChangedTrue);
+        if (restLeistung.modulUrsprungsportal[0] && typeof (restLeistung.modulUrsprungsportal[0] as any).map === 'function') {
             while (restLeistung.modulUrsprungsportal[0] && typeof (restLeistung.modulUrsprungsportal[0] as any).map === 'function') {
                 restLeistung.modulUrsprungsportal = restLeistung.modulUrsprungsportal.flat();
             }
-            changed = true;
+            setChangedTrue();
         }
-        return changed;
+        return restLeistung;
     }
 
     // Bereinige Organisationseinheiten. Überall, wo ein Array sein müsste, wird eines erzeugt, entweder leer oder mit nur einem Element.
-    private sanitizeOrganisationsEinheit(oe: RestOrganisationsEinheit): boolean {
-        let changed = false;
+    private sanitizeOrganisationsEinheit(oe: RestOrganisationsEinheit, setChangedTrue: Function): RestOrganisationsEinheit {
         if (oe.name) {
-            if (!oe.name.name) {
-                oe.name.name = [];
-                changed = true;
-            } else if (typeof oe.name.name.map !== 'function') {
-                oe.name.name = [oe.name.name as any];
-                changed = true;
-            }
+            oe.name.name = this.sanitizeUnknownToArrayAndAlertChanged(oe.name.name, setChangedTrue);
         }
-        if (!oe.anschrift) {
-            oe.anschrift = [];
-            changed = true;
-        } else if (typeof oe.anschrift.map !== 'function') {
-            oe.anschrift = [oe.anschrift as any];
-            changed = true;
-        }
-        return changed;
+        oe.anschrift = this.sanitizeUnknownToArrayAndAlertChanged(oe.anschrift, setChangedTrue);
+        return oe;
     }
 
     // Bereinige OnlineDienste. Überall, wo ein Array sein müsste, wird eines erzeugt, entweder leer oder mit nur einem Element.
-    private sanitizeOnlineDienst(sv: RestOnlineDienst): boolean {
-        let changed = false;
-        if (!sv.bezeichnung) {
-            sv.bezeichnung = [];
-            changed = true;
-            // console.log(1);
-        } else if (typeof sv.bezeichnung.map !== 'function') {
-            sv.bezeichnung = [sv.bezeichnung as any];
-            changed = true;
-            // console.log(2);
+    private sanitizeOnlineDienst(onlineDienst: RestOnlineDienst, setChangedTrue: Function): RestOnlineDienst {
+        onlineDienst.bezeichnung = this.sanitizeUnknownToArrayAndAlertChanged(onlineDienst.bezeichnung, setChangedTrue);
+        onlineDienst.link = this.sanitizeUnknownToArrayAndAlertChanged(onlineDienst.link, setChangedTrue);
+        return onlineDienst;
+    }
+
+    // Bereinige ein Objekt mit einem Array in der Eigenschaft beschreibung
+    private sanitizeObjectWithBeschreibungArrayAndAlertChanged(input: {beschreibung: any[]}, setChangedTrue: Function) {
+        let output: { beschreibung: [] };
+        if (!input) {
+            output = { beschreibung: [] };
+            setChangedTrue();
+        } else {
+            output = {
+                beschreibung: this.sanitizeUnknownToArrayAndAlertChanged(input.beschreibung, setChangedTrue),
+            };
         }
-        if (!sv.link) {
-            sv.link = [];
-            changed = true;
-            // console.log(3);
-        } else if (typeof sv.link.map !== 'function') {
-            sv.link = [sv.link as any];
-            changed = true;
-            // console.log(4);
+        return output;
+    }
+
+    // Bereinigen ein Objekt, das ein Array enthalten sollte
+    private sanitizeUnknownToArrayAndAlertChanged(input: any, setChangedTrue: Function) {
+        let output: any
+        if (!input) {
+            output = [];
+            setChangedTrue();
+        } else if (typeof input.map !== 'function') {
+            output = [input];
+            setChangedTrue();
+        } else {
+            output = input;
         }
-        return changed;
+        return output;
     }
             
 }
