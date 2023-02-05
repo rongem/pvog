@@ -234,12 +234,6 @@ export class DataImport {
     private sanitizeLeistung(restLeistung: RestLeistung, setChangedTrue: Function): RestLeistung {
         if (restLeistung.struktur) {
             restLeistung.struktur.verrichtungsdetail = this.sanitizeUnknownToArrayAndAlertChanged(restLeistung.struktur.verrichtungsdetail, setChangedTrue);
-            if (restLeistung.struktur.verrichtungsdetail[0] && typeof (restLeistung.struktur.verrichtungsdetail[0] as any).map === 'function') {
-                while (restLeistung.struktur.verrichtungsdetail[0] && typeof (restLeistung.struktur.verrichtungsdetail[0] as any).map === 'function') {
-                    restLeistung.struktur.verrichtungsdetail = restLeistung.struktur.verrichtungsdetail.flat();
-                }
-                setChangedTrue();
-            }
         }
         restLeistung.informationsbereichSDG = this.sanitizeUnknownToArrayAndAlertChanged(restLeistung.informationsbereichSDG, setChangedTrue);
         restLeistung.kategorie = this.sanitizeUnknownToArrayAndAlertChanged(restLeistung.kategorie, setChangedTrue);
@@ -269,12 +263,6 @@ export class DataImport {
         restLeistung.modulKosten = this.sanitizeObjectWithBeschreibungArrayAndAlertChanged(restLeistung.modulKosten, setChangedTrue);
         restLeistung.modulBearbeitungsdauer = this.sanitizeObjectWithBeschreibungArrayAndAlertChanged(restLeistung.modulBearbeitungsdauer, setChangedTrue);
         restLeistung.modulUrsprungsportal = this.sanitizeUnknownToArrayAndAlertChanged(restLeistung.modulUrsprungsportal, setChangedTrue);
-        if (restLeistung.modulUrsprungsportal[0] && typeof (restLeistung.modulUrsprungsportal[0] as any).map === 'function') {
-            while (restLeistung.modulUrsprungsportal[0] && typeof (restLeistung.modulUrsprungsportal[0] as any).map === 'function') {
-                restLeistung.modulUrsprungsportal = restLeistung.modulUrsprungsportal.flat();
-            }
-            setChangedTrue();
-        }
         return restLeistung;
     }
 
