@@ -87,7 +87,6 @@ export class DataImport {
             console.log(this.ctr++, content.url);
             // Zähler aktualisieren
             const currentId = content.nextIndex;
-            // this.log.logAction('fetching', 'url #' + this.ctr, content.url);
             // Nächsten Block holen
             content = await this.getNextContent(currentId, content.url);
             // Sofern Inhalt vorliegt, diesen anaylisieren
@@ -223,14 +222,14 @@ export class DataImport {
         if (loesche) {
             if (typeof loesche.forEach !== 'function') {
                 content[rootNode]['loesche'] = [loesche];
-                changed = true;
+                setChangedTrue();
             }
         }
         // Gibt an, ob etwas geändert wurde, und ggf. neu gespeichert werden muss.
         return changed;
     }
 
-    // ein Leistungsobjekt bereinigen. Überall, wo ein Array sein müsste, wird eines erzeugt, entweder leer oder mit nur einem Element.
+    // ein Leistungsobjekt bereinigen. Überall, wo ein Array sein müsste, wird eines erzeugt, ggf. entweder leer oder mit nur einem Element.
     private sanitizeLeistung(restLeistung: RestLeistung, setChangedTrue: Function): RestLeistung {
         if (restLeistung.struktur) {
             restLeistung.struktur.verrichtungsdetail = this.sanitizeUnknownToArrayAndAlertChanged(restLeistung.struktur.verrichtungsdetail, setChangedTrue);
