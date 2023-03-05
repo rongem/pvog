@@ -14,201 +14,264 @@
         "schemas": {
             "Leistung": {
                 "type": "object",
-                "properties": {
-                    "id": {
-                        "type": "string",
-                        "description": "Kombination aus Mandanten-ID und lokaler ID innerhalb des Mandananten, kombiniert mit einem Unterstrich",
-                        "example": "S10005_12345"
-                    },
-                    "bezeichnungDE": {
-                        "type": "string",
-                        "description": "Deutschsprachige Bezeichnung, entweder aus dem Textmodul Typ 03, oder, wenn nicht vorhanden, aus Typ 02, ansonsten <fehlt>",
-                        "example": "Abfall entsorgen"
-                    },
-                    "anzahlServices": {
-                        "type": "integer",
-                        "description": "Anzahl der zuständigen Services",
-                        "example": 0
-                    },
-                    "anzahlOEs": {
-                        "type": "integer",
-                        "description": "Anzahl der zuständigen Organisationseinheiten",
-                        "example": 5
-                    },
-                    "modulTexte": {
-                        "type": "array",
-                        "description": "Optional: Array mit Textmodulen zur Leistung",
-                        "minItems": 0,
-                        "items": {
-                            "$ref": "#/components/schemas/Modultext"
-                        }
-                    },
-                    "anzahlModulTexte": {
-                        "type": "integer",
-                        "description": "Anzahl der für die Leistung definierten Textmodule, unabhängig von Typ und Sprache. Wird für das Nachladen der Modultexte verwendet",
-                        "example": 17
-                    },
-                    "fachlichFreigegebenAm": {
-                        "type": "string",
-                        "description": "Zeitpunkt der fachlichen Freigabe der Leistung"
-                    },
-                    "zuletztGeaendert": {
-                        "type": "string",
-                        "description": "Zeitpunkt der letzten Änderung des Datensatzes"
-                    }
-                },
-                "oneOf": [
+                "description": "Leistungsobjekt, zusammengesetzt aus den Basisdaten sowie zwei verschiedenen Varianten der LeiKa-Referenzierung",
+                "additionalProperties": true,
+                "allOf": [
                     {
-                        "description": "Altes XZufi-Informationsmodell, bei dem die Leistungen ihre Eigenschaften auf gleicher Ebene besitzen. Nachteil: Zuordnung ist unmöglich.",
+                        "type": "object",
                         "properties": {
-                            "leikaIDs": {
+                            "id": {
+                                "type": "string",
+                                "description": "Kombination aus Mandanten-ID und lokaler ID innerhalb des Mandananten, kombiniert mit einem Unterstrich",
+                                "example": "S10005_12345",
+                                "minLength": 1,
+                                "maxLength": 100,
+                                "pattern": "[A-Za-z0-9_]+"
+                            },
+                            "bezeichnungDE": {
+                                "type": "string",
+                                "description": "Deutschsprachige Bezeichnung, entweder aus dem Textmodul Typ 03, oder, wenn nicht vorhanden, aus Typ 02, ansonsten <fehlt>",
+                                "example": "Abfall entsorgen",
+                                "minLength": 1,
+                                "maxLength": 10000,
+                                "pattern": "^.{0,10000}$"
+                            },
+                            "anzahlServices": {
+                                "type": "integer",
+                                "description": "Anzahl der zuständigen Services",
+                                "example": 0
+                            },
+                            "anzahlOEs": {
+                                "type": "integer",
+                                "description": "Anzahl der zuständigen Organisationseinheiten",
+                                "example": 5
+                            },
+                            "modulTexte": {
                                 "type": "array",
-                                "description": "Alle der Leistung zugeordneten LeiKaIDs als String-Array",
+                                "description": "Optional: Array mit Textmodulen zur Leistung",
                                 "minItems": 0,
+                                "maxItems": 10000,
                                 "items": {
-                                    "type": "string",
-                                    "description": "Referenz-LeiKa-ID aus dem Leistungskatalog",
-                                    "example": "99001001002000"
+                                    "$ref": "#/components/schemas/Modultext"
                                 }
                             },
-                            "typisierung": {
-                                "type": "array",
-                                "description": "Typzuordnungen der Leistung",
-                                "minItems": 0,
-                                "items": {
-                                    "type": "string",
-                                    "description": "Code für den Typ der Leistung",
-                                    "example": "2"
-                                }
+                            "anzahlModulTexte": {
+                                "type": "integer",
+                                "description": "Anzahl der für die Leistung definierten Textmodule, unabhängig von Typ und Sprache. Wird für das Nachladen der Modultexte verwendet",
+                                "example": 17
                             },
-                            "informationsbereichSDG": {
-                                "type": "array",
-                                "description": "Zugeordnete SDG-Codes für die Leistung",
-                                "minItems": 0,
-                                "items": {
-                                    "type": "string",
-                                    "description": "SDG-Code",
-                                    "example": "2040900"
-                                }
+                            "fachlichFreigegebenAm": {
+                                "type": "string",
+                                "description": "Zeitpunkt der fachlichen Freigabe der Leistung",
+                                "minLength": 1,
+                                "maxLength": 20,
+                                "pattern": "^[0-9: ./Z]+"
+                            },
+                            "zuletztGeaendert": {
+                                "type": "string",
+                                "description": "Zeitpunkt der letzten Änderung des Datensatzes",
+                                "minLength": 1,
+                                "maxLength": 20,
+                                "pattern": "^[0-9: ./Z]+"
                             }
                         },
                         "required": [
-                            "leikaIDs",
-                            "typisierung",
-                            "informationsbereichSDG"
+                            "id",
+                            "bezeichnungDE",
+                            "anzahlServices",
+                            "anzahlOEs",
+                            "anzahlModulTexte",
+                            "fachlichFreigegebenAm",
+                            "zuletztGeaendert"
                         ]
                     },
-                    {
-                        "properties": {
-                            "LeikaInformationen": {
-                                "type": "array",
-                                "description": "Besseres Informationsmodell, bei dem die Typ- und SDG-Informationen direkt der Leistung zugeordnet werden.",
-                                "minItems": 0,
-                                "items": {
-                                    "type": "object",
-                                    "properties": {
-                                        "leikaID": {
+                    {      
+                        "oneOf": [
+                            {
+                                "type": "object",
+                                "description": "Altes XZufi-Informationsmodell, bei dem die Leistungen ihre Eigenschaften auf gleicher Ebene besitzen. Nachteil: Zuordnung ist unmöglich.",
+                                "properties": {
+                                    "leikaIDs": {
+                                        "type": "array",
+                                        "description": "Alle der Leistung zugeordneten LeiKaIDs als String-Array",
+                                        "minItems": 0,
+                                        "maxItems": 50,
+                                        "items": {
                                             "type": "string",
-                                            "description": "Leistungskatalog-ID einer Leistung",
-                                            "example": "99001001002000"
-                                        },
-                                        "gueltigerKatalogEintrag": {
-                                            "type": "boolean",
-                                            "description": "Gibt an, ob die LeiKa-ID gegen den Katalog geprüft und dort gefunden wurde",
-                                            "example": false,
-                                            "default": false
-                                        },
-                                        "typisierung": {
-                                            "type": "array",
-                                            "description": "Typzuordnungen der Leistung",
-                                            "minItems": 0,
-                                            "items": {
-                                                "type": "string",
-                                                "description": "Code für den Typ der Leistung",
-                                                "example": "2"
-                                            }
-                                        },
-                                        "abweichendeTypisierung": {
-                                            "type": "boolean",
-                                            "description": "Gibt an, ob die Informationen zum Typ der Leistung gegenüber denen im Katalog bewusst abweichend festgelegt wurden.",
-                                            "example": false,
-                                            "default": false
-                                        },
-                                        "informationsbereichSDG": {
-                                            "type": "array",
-                                            "description": "Zugeordnete SDG-Codes für die Leistung",
-                                            "minItems": 0,
-                                            "items": {
-                                                "type": "string",
-                                                "description": "SDG-Code",
-                                                "example": "2040900"
-                                            }
-                                        },
-                                        "abweichendeInformationsbereicheSDG": {
-                                            "type": "boolean",
-                                            "description": "Gibt an, ob die Informationen zum Informationsbereich SDG der Leistung gegenüber denen im Katalog bewusst abweichend festgelegt wurden.",
-                                            "example": false,
-                                            "default": false
+                                            "description": "Referenz-LeiKa-ID aus dem Leistungskatalog",
+                                            "example": "99001001002000",
+                                            "minLength": 14,
+                                            "maxLength": 14,
+                                            "pattern": "[0-9]{14}"
                                         }
                                     },
-                                    "required": [
-                                        "leikaID",
-                                        "typisierung",
-                                        "abweichendeTypisierung",
-                                        "informationsbereichSDG",
-                                        "abweichendeInformationsbereicheSDG"
-                                    ]
+                                    "typisierung": {
+                                        "type": "array",
+                                        "description": "Typzuordnungen der Leistung",
+                                        "minItems": 0,
+                                        "maxItems": 20,
+                                        "items": {
+                                            "type": "string",
+                                            "description": "Code für den Typ der Leistung",
+                                            "example": "2",
+                                            "minLength": 1,
+                                            "maxLength": 5,
+                                            "pattern": "^[0-9/]+$"
+                                        }
+                                    },
+                                    "informationsbereichSDG": {
+                                        "type": "array",
+                                        "description": "Zugeordnete SDG-Codes für die Leistung",
+                                        "minItems": 0,
+                                        "maxItems": 20,
+                                        "items": {
+                                            "type": "string",
+                                            "description": "SDG-Code",
+                                            "example": "2040900",
+                                            "minLength": 7,
+                                            "maxLength": 7,
+                                            "pattern": "^[0-9]{7}$"
+                                        }
+                                    }
+                                },
+                                "required": [
+                                    "leikaIDs",
+                                    "typisierung",
+                                    "informationsbereichSDG"
+                                ]
+                            },
+                            {
+                                "type": "object",
+                                "properties": {
+                                    "LeikaInformationen": {
+                                        "type": "array",
+                                        "description": "Besseres Informationsmodell, bei dem die Typ- und SDG-Informationen direkt der Leistung zugeordnet werden.",
+                                        "minItems": 0,
+                                        "maxItems": 50,
+                                        "items": {
+                                            "type": "object",
+                                            "additionalProperties": false,
+                                            "properties": {
+                                                "leikaID": {
+                                                    "type": "string",
+                                                    "description": "Leistungskatalog-ID einer Leistung",
+                                                    "example": "99001001002000",
+                                                    "minLength": 14,
+                                                    "maxLength": 14,
+                                                    "pattern": "[0-9]{14}"
+                                                },
+                                                "gueltigerKatalogEintrag": {
+                                                    "type": "boolean",
+                                                    "description": "Gibt an, ob die LeiKa-ID gegen den Katalog geprüft und dort gefunden wurde",
+                                                    "example": false,
+                                                    "default": false
+                                                },
+                                                "typisierung": {
+                                                    "type": "array",
+                                                    "description": "Typzuordnungen der Leistung",
+                                                    "minItems": 0,
+                                                    "maxItems": 20,
+                                                    "items": {
+                                                        "type": "string",
+                                                        "description": "Code für den Typ der Leistung",
+                                                        "example": "2",
+                                                        "minLength": 1,
+                                                        "maxLength": 5,
+                                                        "pattern": "^[0-9/]+$"
+                                                    }
+                                                },
+                                                "abweichendeTypisierung": {
+                                                    "type": "boolean",
+                                                    "description": "Gibt an, ob die Informationen zum Typ der Leistung gegenüber denen im Katalog bewusst abweichend festgelegt wurden.",
+                                                    "example": false,
+                                                    "default": false
+                                                },
+                                                "informationsbereichSDG": {
+                                                    "type": "array",
+                                                    "description": "Zugeordnete SDG-Codes für die Leistung",
+                                                    "minItems": 0,
+                                                    "maxItems": 20,
+                                                    "items": {
+                                                        "type": "string",
+                                                        "description": "SDG-Code",
+                                                        "example": "2040900",
+                                                        "minLength": 7,
+                                                        "maxLength": 7,
+                                                        "pattern": "^[0-9]{7}$"
+                                                    }
+                                                },
+                                                "abweichendeInformationsbereicheSDG": {
+                                                    "type": "boolean",
+                                                    "description": "Gibt an, ob die Informationen zum Informationsbereich SDG der Leistung gegenüber denen im Katalog bewusst abweichend festgelegt wurden.",
+                                                    "example": false,
+                                                    "default": false
+                                                }
+                                            },
+                                            "required": [
+                                                "leikaID",
+                                                "typisierung",
+                                                "abweichendeTypisierung",
+                                                "informationsbereichSDG",
+                                                "abweichendeInformationsbereicheSDG"
+                                            ]
+                                        }
+                                    }
                                 }
                             }
-                        }
+                        ]
                     }
-                ],
-                "required": [
-                    "id",
-                    "bezeichnungDE",
-                    "anzahlServices",
-                    "anzahlOEs",
-                    "anzahlModulTexte",
-                    "fachlichFreigegebenAm",
-                    "zuletztGeaendert"
                 ]
             },
             "Modultext": {
                 "type": "object",
                 "description": "Modultext, der Text oder Links zu Webseiten enthalten kann",
+                "additionalProperties": false,
                 "properties": {
                     "leikaTextmodul": {
                         "type": "string",
+                        "minLength": 2,
+                        "maxLength": 2,
                         "description": "Code des Leika-Textmoduls",
-                        "example": "03"
+                        "example": "03",
+                        "pattern": "^[0-9]{2}$"
                     },
                     "sprachCode": {
                         "type": "string",
+                        "minLength": 2,
+                        "maxLength": 2,
                         "description": "Sprachcode für den Modultext",
-                        "example": "de"
+                        "example": "de",
+                        "pattern": "^[a-z]{2}$"
                     },
                     "wortAnzahl": {
                         "type": "integer",
                         "description": "Anzahl der Worte im von HTML-Tags bereinigten Text",
+                        "minimum": 0,
                         "example": 95
                     },
                     "zeichenAnzahl": {
                         "type": "integer",
                         "description": "Anzahl der Zeichen (unklusive Leerzeichen) im von HTML-Tags bereinigten Text. 0, falls kein Text vorhanden ist.",
+                        "minimum": 0,
                         "example": 735
                     },
                     "anzahlLinks": {
                         "type": "integer",
                         "description": "Anzahl der zugeordneten Hyperlinks",
+                        "minimum": 0,
                         "example": 735
                     },
                     "gekuerzterText": {
                         "type": "string",
-                        "description": "Text, der von HTML-Tags bereinigt wurde. Wenn der Text länger als 70 Zeichen ist, werden die ersten 25 Zeichen, dann [...] und dann die letzten 30 Zeichen extrahiert."
+                        "description": "Text, der von HTML-Tags bereinigt wurde. Wenn der Text länger als 60 Zeichen ist, werden die ersten 25 Zeichen, dann [...] und dann die letzten 30 Zeichen extrahiert.",
+                        "minLength": 1,
+                        "maxLength": 70,
+                        "pattern": "^.{0,70}$",
+                        "example": "Das ist ein gekürzter Tex[...] als Beispiel für dieses Feld."
                     }
                 },
                 "required": [
-                    "leistungsID",
+                    "leikaTextmodul",
                     "sprachCode",
                     "wortAnzahl",
                     "zeichenAnzahl",
@@ -218,11 +281,15 @@
             "Zustaendigkeit": {
                 "type": "object",
                 "description": "Zuständigkeitsobjekt, das Leistungen mit anderen Elementen wie Services oder Organisationseinheiten verknüpft",
+                "additionalProperties": false,
                 "properties": {
                     "leistungsID": {
                         "type": "string",
                         "description": "Eindeutige ID der Leistung, zu der der Modultext gehört",
-                        "example": "S10005_12345"
+                        "example": "S10005_12345",
+                        "pattern": "[A-Za-z0-9_]+",
+                        "minLength": 1,
+                        "maxLength": 100
                     },
                     "zustaendigkeitsSchema": {
                         "type": "string",
@@ -235,12 +302,18 @@
                     "uebergeordnetesObjektID": {
                         "type": "string",
                         "description": "Eindeutige ID des Objekts aus dem entsprechenden Zuständigkeitsschema, mit dem die Leistung verknüpft wird",
-                        "example": "S10005_12345"
+                        "example": "S10005_12345",
+                        "pattern": "[A-Za-z0-9_]+",
+                        "minLength": 1,
+                        "maxLength": 100
                     },
                     "gebietID": {
                         "type": "string",
                         "description": "ARS der Region, für die die Leistung verknüpft wird",
-                        "example": "160775009047"
+                        "example": "160775009047",
+                        "minLength": 2,
+                        "maxLength": 12,
+                        "pattern": "[0-9]{2,12}"
                     }
                 },
                 "required": [
@@ -252,44 +325,53 @@
                 "type": "object",
                 "properties": {
                     "page": {
-                        "type": "number",
+                        "type": "integer",
                         "description": "Nummer der Seite, die zurückgegeben wurde",
-                        "example": 0
+                        "example": 0,
+                        "minimum": 0,
+                        "format": "int32"
                     },
                     "totalPages": {
-                        "type": "number",
+                        "type": "integer",
                         "description": "Gesamtanzahl der vorhandenen Seiten",
                         "example": 50,
-                        "minimum": 1
+                        "minimum": 1,
+                        "format": "int32"
                     }
                 }
+            },
+            "Empty": {
+                "type": "string",
+                "minLength": 0,
+                "maxLength": 0,
+                "pattern": "^$"
             }
         },
         "parameters": {
-            "page": {
-                "name": "page",
+            "seite": {
+                "name": "seite",
                 "in": "query",
                 "required": false,
                 "allowEmptyValue": true,
                 "description": "Nummer der Seite mit jeweils 1000 Elementen, die abgerufen werden soll",
                 "schema": {
-                    "type": "number",
+                    "type": "integer",
                     "minimum": 0,
+                    "maximum": 10000,
                     "title": "Seite",
-                    "default": 0
+                    "default": 0,
+                    "format": "int32"
                 }
             },
-            "leistung": {
-                "name": "leistung",
-                "in": "path",
-                "required": true,
-                "allowEmptyValue": false,
-                "description": "Eindeutige ID der Leistung, für die die Daten abgerufen werden sollen",
+            "mitText": {
+                "name": "mitText",
+                "in": "query",
+                "required": false,
+                "allowEmptyValue": true,
+                "description": "Gibt an, ob Modultexte mit den Leistungen übertragen werden sollen.",
                 "schema": {
-                    "type": "string",
-                    "minLength": 1,
-                    "maxLength": 50,
-                    "example": "S10005_12345"
+                    "type": "boolean",
+                    "example": false
                 }
             }
         },
@@ -304,10 +386,18 @@
     "paths": {
         "/leistungen": {
             "get": {
+                "security": [
+                    {
+                        "WebTokenAuth":[]
+                    }
+                ],
                 "description": "Gibt alle Leistungen zurück",
                 "parameters": [
                     {
-                        "$ref": "#/components/parameters/page"
+                        "$ref": "#/components/parameters/seite"
+                    }, 
+                    {
+                        "$ref": "#/components/parameters/mitText"
                     }
                 ],
                 "responses": {
@@ -340,18 +430,70 @@
                             }
                         }
                     },
+                    "401": {
+                        "description": "Authentifizierung nicht erfolgt",
+                        "content": {
+                            "text/plain": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Empty"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Keine Berechtigung",
+                        "content": {
+                            "text/plain": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Empty"
+                                }
+                            }
+                        }
+                    },
                     "404": {
-                        "description": "Angegebene Seite nicht gefunden"
+                        "description": "Angegebene Seite nicht gefunden",
+                        "content": {
+                            "text/plain": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Empty"
+                                }
+                            }
+                        }
+                    },
+                    "429": {
+                        "description": "Too Many Requests",
+                        "content": {
+                            "text/plain": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Empty"
+                                }
+                            }
+                        }
+                    },
+                    "default": {
+                        "description": "Too Many Requests",
+                        "content": {
+                            "text/plain": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Empty"
+                                }
+                            }
+                        }
                     }
                 }
             }
         },
         "/zustaendigkeiten": {
             "get": {
+                "security": [
+                    {
+                        "WebTokenAuth":[]
+                    }
+                ],
                 "description": "Gibt alle Zuständigkeiten für Leistungen zurück",
                 "parameters": [
                     {
-                        "$ref": "#/components/parameters/page"
+                        "$ref": "#/components/parameters/seite"
                     }
                 ],
                 "responses": {
@@ -384,11 +526,63 @@
                             }
                         }
                     },
+                    "401": {
+                        "description": "Authentifizierung nicht erfolgt",
+                        "content": {
+                            "text/plain": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Empty"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Keine Berechtigung",
+                        "content": {
+                            "text/plain": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Empty"
+                                }
+                            }
+                        }
+                    },
                     "404": {
-                        "description": "Angegebene Seite nicht gefunden"
+                        "description": "Angegebene Seite nicht gefunden",
+                        "content": {
+                            "text/plain": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Empty"
+                                }
+                            }
+                        }
+                    },
+                    "429": {
+                        "description": "Too Many Requests",
+                        "content": {
+                            "text/plain": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Empty"
+                                }
+                            }
+                        }
+                    },
+                    "default": {
+                        "description": "Too Many Requests",
+                        "content": {
+                            "text/plain": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Empty"
+                                }
+                            }
+                        }
                     }
                 }
             }
         }
-    }
+    },
+    "security": [
+        {
+            "WebTokenAuth": []
+        }
+    ]
 }
