@@ -6,19 +6,239 @@
     },
     "servers": [
         {
-            "url": "https://api.server.test/v1",
+            "url": "https://pvog.server.test/v1",
             "description": "Server description"
         }
     ],
     "components": {
         "schemas": {
-            "leistung": {
+            "Leistung": {
                 "type": "object",
                 "properties": {
-                    "property": {
-                        "type": "integer"
+                    "id": {
+                        "type": "string",
+                        "description": "Kombination aus Mandanten-ID und lokaler ID innerhalb des Mandananten, kombiniert mit einem Unterstrich",
+                        "example": "S10005_12345"
+                    },
+                    "bezeichnungDE": {
+                        "type": "string",
+                        "description": "Deutschsprachige Bezeichnung, entweder aus dem Textmodul Typ 03, oder, wenn nicht vorhanden, aus Typ 02, ansonsten <fehlt>",
+                        "example": "Abfall entsorgen"
+                    },
+                    "anzahlServices": {
+                        "type": "integer",
+                        "description": "Anzahl der zuständigen Services",
+                        "example": 0
+                    },
+                    "anzahlOEs": {
+                        "type": "integer",
+                        "description": "Anzahl der zuständigen Organisationseinheiten",
+                        "example": 5
+                    },
+                    "anzahlModulTexte": {
+                        "type": "integer",
+                        "description": "Anzahl der für die Leistung definierten Textmodule, unabhängig von Typ und Sprache. Wird für das Nachladen der Modultexte verwendet",
+                        "example": 17
+                    },
+                    "fachlichFreigegebenAm": {
+                        "type": "string",
+                        "description": "Zeitpunkt der fachlichen Freigabe der Leistung"
+                    },
+                    "zuletztGeaendert": {
+                        "type": "string",
+                        "description": "Zeitpunkt der letzten Änderung des Datensatzes"
                     }
-                }
+                },
+                "oneOf": [
+                    {
+                        "description": "Altes XZufi-Informationsmodell, bei dem die Leistungen ihre Eigenschaften auf gleicher Ebene besitzen. Nachteil: Zuordnung ist unmöglich.",
+                        "properties": {
+                            "leikaIDs": {
+                                "type": "array",
+                                "description": "Alle der Leistung zugeordneten LeiKaIDs als String-Array",
+                                "minItems": 0,
+                                "items": {
+                                    "type": "string",
+                                    "description": "Referenz-LeiKa-ID aus dem Leistungskatalog",
+                                    "example": "99001001002000"
+                                }
+                            },
+                            "typisierung": {
+                                "type": "array",
+                                "description": "Typzuordnungen der Leistung",
+                                "minItems": 0,
+                                "items": {
+                                    "type": "string",
+                                    "description": "Code für den Typ der Leistung",
+                                    "example": "2"
+                                }
+                            },
+                            "informationsbereichSDG": {
+                                "type": "array",
+                                "description": "Zugeordnete SDG-Codes für die Leistung",
+                                "minItems": 0,
+                                "items": {
+                                    "type": "string",
+                                    "description": "SDG-Code",
+                                    "example": "2040900"
+                                }
+                            }
+                        },
+                        "required": [
+                            "leikaIDs",
+                            "typisierung",
+                            "informationsbereichSDG"
+                        ]
+                    },
+                    {
+                        "properties": {
+                            "LeikaInformationen": {
+                                "type": "array",
+                                "description": "Besseres Informationsmodell, bei dem die Typ- und SDG-Informationen direkt der Leistung zugeordnet werden.",
+                                "minItems": 0,
+                                "items": {
+                                    "type": "object",
+                                    "properties": {
+                                        "leikaID": {
+                                            "type": "string",
+                                            "description": "Leistungskatalog-ID einer Leistung",
+                                            "example": "99001001002000"
+                                        },
+                                        "gueltigerKatalogEintrag": {
+                                            "type": "boolean",
+                                            "description": "Gibt an, ob die LeiKa-ID gegen den Katalog geprüft und dort gefunden wurde",
+                                            "example": false,
+                                            "default": false
+                                        },
+                                        "typisierung": {
+                                            "type": "array",
+                                            "description": "Typzuordnungen der Leistung",
+                                            "minItems": 0,
+                                            "items": {
+                                                "type": "string",
+                                                "description": "Code für den Typ der Leistung",
+                                                "example": "2"
+                                            }
+                                        },
+                                        "abweichendeTypisierung": {
+                                            "type": "boolean",
+                                            "description": "Gibt an, ob die Informationen zum Typ der Leistung gegenüber denen im Katalog bewusst abweichend festgelegt wurden.",
+                                            "example": false,
+                                            "default": false
+                                        },
+                                        "informationsbereichSDG": {
+                                            "type": "array",
+                                            "description": "Zugeordnete SDG-Codes für die Leistung",
+                                            "minItems": 0,
+                                            "items": {
+                                                "type": "string",
+                                                "description": "SDG-Code",
+                                                "example": "2040900"
+                                            }
+                                        },
+                                        "abweichendeInformationsbereicheSDG": {
+                                            "type": "boolean",
+                                            "description": "Gibt an, ob die Informationen zum Informationsbereich SDG der Leistung gegenüber denen im Katalog bewusst abweichend festgelegt wurden.",
+                                            "example": false,
+                                            "default": false
+                                        }
+                                    },
+                                    "required": [
+                                        "leikaID",
+                                        "typisierung",
+                                        "abweichendeTypisierung",
+                                        "informationsbereichSDG",
+                                        "abweichendeInformationsbereicheSDG"
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                ],
+                "required": [
+                    "id",
+                    "bezeichnungDE",
+                    "anzahlServices",
+                    "anzahlOEs",
+                    "anzahlModulTexte",
+                    "fachlichFreigegebenAm",
+                    "zuletztGeaendert"
+                ]
+            },
+            "Modultext": {
+                "type": "object",
+                "description": "Modultext, der Text oder Links zu Webseiten enthalten kann",
+                "properties": {
+                    "leistungsID": {
+                        "type": "string",
+                        "description": "eindeutige ID der Leistung, zu der der Modultext gehört",
+                        "example": "S10005_12345"
+                    },
+                    "sprachCode": {
+                        "type": "string",
+                        "description": "Sprachcode für den Modultext",
+                        "example": "de"
+                    },
+                    "wortAnzahl": {
+                        "type": "integer",
+                        "description": "Anzahl der Worte im von HTML-Tags bereinigten Text",
+                        "example": 95
+                    },
+                    "zeichenAnzahl": {
+                        "type": "integer",
+                        "description": "Anzahl der Zeichen (unklusive Leerzeichen) im von HTML-Tags bereinigten Text. 0, falls kein Text vorhanden ist.",
+                        "example": 735
+                    },
+                    "anzahlLinks": {
+                        "type": "integer",
+                        "description": "Anzahl der zugeordneten Hyperlinks",
+                        "example": 735
+                    },
+                    "gekuerzterText": {
+                        "type": "string",
+                        "description": "Text, der von HTML-Tags bereinigt wurde. Wenn der Text länger als 70 Zeichen ist, werden die ersten 25 Zeichen, dann [...] und dann die letzten 30 Zeichen extrahiert."
+                    }
+                },
+                "required": [
+                    "leistungsID",
+                    "sprachCode",
+                    "wortAnzahl",
+                    "zeichenAnzahl",
+                    "anzahlLinks"
+                ]
+            },
+            "Zustaendigkeit": {
+                "type": "object",
+                "description": "Zuständigkeitsobjekt, das Leistungen mit anderen Elementen wie Services oder Organisationseinheiten verknüpft",
+                "properties": {
+                    "leistungsID": {
+                        "type": "string",
+                        "description": "Eindeutige ID der Leistung, zu der der Modultext gehört",
+                        "example": "S10005_12345"
+                    },
+                    "zustaendigkeitsSchema": {
+                        "type": "string",
+                        "description": "Typ der Zuständigkeit",
+                        "enum": [
+                            "ZustaendigkeitOrganisationseinheit",
+                            "ZustaendigkeitOnlinedienst"
+                        ]
+                    },
+                    "uebergeordnetesObjektID": {
+                        "type": "string",
+                        "description": "Eindeutige ID des Objekts aus dem entsprechenden Zuständigkeitsschema, mit dem die Leistung verknüpft wird",
+                        "example": "S10005_12345"
+                    },
+                    "gebietID": {
+                        "type": "string",
+                        "description": "ARS der Region, für die die Leistung verknüpft wird",
+                        "example": "160775009047"
+                    }
+                },
+                "required": [
+                    "leistungsID",
+                    "zustaendigkeitsSchema"
+                ]
             }
         },
         "parameters": {
@@ -34,7 +254,27 @@
                     "title": "Seite",
                     "default": 0
                 }
-    }
+            },
+            "leistung": {
+                "name": "leistung",
+                "in": "path",
+                "required": true,
+                "allowEmptyValue": false,
+                "description": "Eindeutige ID der Leistung, für die die Daten abgerufen werden sollen",
+                "schema": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 50,
+                    "example": "S10005_12345"
+                }
+            }
+        },
+        "securitySchemes": {
+            "WebTokenAuth": {
+                "type": "http",
+                "scheme": "bearer",
+                "bearerFormat": "JWT"
+            }
         }
     },
     "paths": {
@@ -50,8 +290,116 @@
                     "200": {
                         "description": "OK",
                         "content": {
-                            
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "description": "Objekt mit der aktuellen Seite, der Anzahl der Seiten sowie den Leistungen der Seite",
+                                    "properties": {
+                                        "page": {
+                                            "type": "number",
+                                            "description": "Nummer der Seite, die zurückgegeben wurde",
+                                            "example": 0
+                                        },
+                                        "totalPages": {
+                                            "type": "number",
+                                            "description": "Gesamtanzahl der vorhandenen Seiten",
+                                            "example": 50,
+                                            "minimum": 1
+                                        },
+                                        "leistungen": {
+                                            "type": "array",
+                                            "description": "Array mit den Leistungen",
+                                            "minItems": 0,
+                                            "maxItems": 1000,
+                                            "items": {
+                                                "$ref": "#/components/schemas/Leistung"
+                                            }
+                                        }
+                                    }
+                                }
+                            }
                         }
+                    },
+                    "404": {
+                        "description": "Angegebene Seite nicht gefunden"
+                    }
+                }
+            }
+        },
+        "/modultexte/{leistung}": {
+            "get": {
+                "description": "Gibt alle Modultexte zu einer zurück",
+                "parameters": [
+                    {
+                        "$ref": "#/components/parameters/leistung"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "description": "Array mit den Modultexten zu einer Leistung",
+                                    "minItems": 0,
+                                    "items": {
+                                        "$ref": "#/components/schemas/Modultext"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Leistung mit der angegebenen ID nicht gefunden."
+                    }
+                }
+            }
+        },
+        "/zustaendigkeiten": {
+            "get": {
+                "description": "Gibt alle Zuständigkeiten für Leistungen zurück",
+                "parameters": [
+                    {
+                        "$ref": "#/components/parameters/page"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "description": "Objekt mit der aktuellen Seite, der Anzahl der Seiten sowie den Zuständigkeiten der Seite",
+                                    "properties": {
+                                        "page": {
+                                            "type": "number",
+                                            "description": "Nummer der Seite, die zurückgegeben wurde",
+                                            "example": 0
+                                        },
+                                        "totalPages": {
+                                            "type": "number",
+                                            "description": "Gesamtanzahl der vorhandenen Seiten",
+                                            "example": 50,
+                                            "minimum": 1
+                                        },
+                                        "leistungen": {
+                                            "type": "array",
+                                            "description": "Array mit den Zuständigkeiten",
+                                            "minItems": 0,
+                                            "maxItems": 1000,
+                                            "items": {
+                                                "$ref": "#/components/schemas/Zustaendigkeit"
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Angegebene Seite nicht gefunden"
                     }
                 }
             }
