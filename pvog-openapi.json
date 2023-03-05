@@ -35,6 +35,14 @@
                         "description": "Anzahl der zuständigen Organisationseinheiten",
                         "example": 5
                     },
+                    "modulTexte": {
+                        "type": "array",
+                        "description": "Optional: Array mit Textmodulen zur Leistung",
+                        "minItems": 0,
+                        "items": {
+                            "$ref": "#/components/schemas/Modultext"
+                        }
+                    },
                     "anzahlModulTexte": {
                         "type": "integer",
                         "description": "Anzahl der für die Leistung definierten Textmodule, unabhängig von Typ und Sprache. Wird für das Nachladen der Modultexte verwendet",
@@ -169,10 +177,10 @@
                 "type": "object",
                 "description": "Modultext, der Text oder Links zu Webseiten enthalten kann",
                 "properties": {
-                    "leistungsID": {
+                    "leikaTextmodul": {
                         "type": "string",
-                        "description": "eindeutige ID der Leistung, zu der der Modultext gehört",
-                        "example": "S10005_12345"
+                        "description": "Code des Leika-Textmoduls",
+                        "example": "03"
                     },
                     "sprachCode": {
                         "type": "string",
@@ -239,6 +247,22 @@
                     "leistungsID",
                     "zustaendigkeitsSchema"
                 ]
+            },
+            "PagedObject": {
+                "type": "object",
+                "properties": {
+                    "page": {
+                        "type": "number",
+                        "description": "Nummer der Seite, die zurückgegeben wurde",
+                        "example": 0
+                    },
+                    "totalPages": {
+                        "type": "number",
+                        "description": "Gesamtanzahl der vorhandenen Seiten",
+                        "example": 50,
+                        "minimum": 1
+                    }
+                }
             }
         },
         "parameters": {
@@ -292,66 +316,32 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "type": "object",
-                                    "description": "Objekt mit der aktuellen Seite, der Anzahl der Seiten sowie den Leistungen der Seite",
-                                    "properties": {
-                                        "page": {
-                                            "type": "number",
-                                            "description": "Nummer der Seite, die zurückgegeben wurde",
-                                            "example": 0
+                                    "allOf": [
+                                        {
+                                            "$ref": "#/components/schemas/PagedObject"
                                         },
-                                        "totalPages": {
-                                            "type": "number",
-                                            "description": "Gesamtanzahl der vorhandenen Seiten",
-                                            "example": 50,
-                                            "minimum": 1
-                                        },
-                                        "leistungen": {
-                                            "type": "array",
-                                            "description": "Array mit den Leistungen",
-                                            "minItems": 0,
-                                            "maxItems": 1000,
-                                            "items": {
-                                                "$ref": "#/components/schemas/Leistung"
+                                        {
+                                            "type": "object",
+                                            "description": "Objekt mit der aktuellen Seite, der Anzahl der Seiten sowie den Leistungen der Seite",
+                                            "properties": {
+                                                "leistungen": {
+                                                    "type": "array",
+                                                    "description": "Array mit den Leistungen",
+                                                    "minItems": 0,
+                                                    "maxItems": 1000,
+                                                    "items": {
+                                                        "$ref": "#/components/schemas/Leistung"
+                                                    }
+                                                }
                                             }
                                         }
-                                    }
+                                    ]
                                 }
                             }
                         }
                     },
                     "404": {
                         "description": "Angegebene Seite nicht gefunden"
-                    }
-                }
-            }
-        },
-        "/modultexte/{leistung}": {
-            "get": {
-                "description": "Gibt alle Modultexte zu einer zurück",
-                "parameters": [
-                    {
-                        "$ref": "#/components/parameters/leistung"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "array",
-                                    "description": "Array mit den Modultexten zu einer Leistung",
-                                    "minItems": 0,
-                                    "items": {
-                                        "$ref": "#/components/schemas/Modultext"
-                                    }
-                                }
-                            }
-                        }
-                    },
-                    "404": {
-                        "description": "Leistung mit der angegebenen ID nicht gefunden."
                     }
                 }
             }
@@ -370,30 +360,26 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "type": "object",
-                                    "description": "Objekt mit der aktuellen Seite, der Anzahl der Seiten sowie den Zuständigkeiten der Seite",
-                                    "properties": {
-                                        "page": {
-                                            "type": "number",
-                                            "description": "Nummer der Seite, die zurückgegeben wurde",
-                                            "example": 0
+                                    "allOf": [
+                                        {
+                                            "$ref": "#/components/schemas/PagedObject"
                                         },
-                                        "totalPages": {
-                                            "type": "number",
-                                            "description": "Gesamtanzahl der vorhandenen Seiten",
-                                            "example": 50,
-                                            "minimum": 1
-                                        },
-                                        "leistungen": {
-                                            "type": "array",
-                                            "description": "Array mit den Zuständigkeiten",
-                                            "minItems": 0,
-                                            "maxItems": 1000,
-                                            "items": {
-                                                "$ref": "#/components/schemas/Zustaendigkeit"
+                                        {
+                                            "type": "object",
+                                            "description": "Objekt mit der aktuellen Seite, der Anzahl der Seiten sowie den Zuständigkeiten der Seite",
+                                            "properties": {
+                                                "zustaendigkeiten": {
+                                                    "type": "array",
+                                                    "description": "Array mit den Zuständigkeiten",
+                                                    "minItems": 0,
+                                                    "maxItems": 1000,
+                                                    "items": {
+                                                        "$ref": "#/components/schemas/Zustaendigkeit"
+                                                    }
+                                                }
                                             }
                                         }
-                                    }
+                                    ]
                                 }
                             }
                         }
