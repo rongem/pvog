@@ -79,6 +79,10 @@ export const createLeistung = (leistung: RestLeistung): ILeistung => ({
     anzahlKategorieBeschreibungenOhneInhalt: sum(leistung.kategorie.map(k => k.beschreibung.filter(b => !b.text).length)),
     anzahlKategorieBezeichnungen: sum(leistung.kategorie.map(k => k.bezeichnung.length)),
     anzahlModulTexte: leistung.modulText.length,
+    modulBearbeitungsdauerVorhanden: !!leistung.modulBearbeitungsdauer,
+    modulFachlicheFreigabeVorhanden: !!leistung.modulFachlicheFreigabe,
+    modulFristVorhanden: !!leistung.modulFrist,
+    modulKostenVorhanden: !!leistung.modulKosten,
     bezeichnungDE: getBezeichnung(leistung),
     zuletztGeandert: leistung.versionsinformation?.geaendertDatumZeit,
     fachlichFreigegebenAm: leistung.modulFachlicheFreigabe?.fachlichFreigegebenAm,
@@ -125,6 +129,10 @@ export interface ILeistung {
     anzahlKategorieBeschreibungenOhneInhalt: number;
     anzahlKategorieBezeichnungen: number;
     anzahlModulTexte: number;
+    modulFristVorhanden: boolean;
+    modulKostenVorhanden: boolean;
+    modulBearbeitungsdauerVorhanden: boolean;
+    modulFachlicheFreigabeVorhanden: boolean;
     bezeichnungDE: string;
     zuletztGeandert: string;
     fachlichFreigegebenAm: string;
