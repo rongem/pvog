@@ -322,6 +322,9 @@ export class Storage {
     // Zuständigkeit entfernen und betroffene Objekte aktualisieren
     removeZustaendigkeit(id: string) {
         const mandant = id.split('_')[0];
+        if(!this.zustaendigkeiten[mandant]) {
+            this.zustaendigkeiten[mandant] = {};
+        }
         if (this.zustaendigkeiten[mandant][id]) {
             this.leistungen[this.zustaendigkeiten[mandant][id].leistungID].anzahlOEs--;
             delete this.zustaendigkeiten[mandant][id];
