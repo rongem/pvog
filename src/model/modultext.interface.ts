@@ -6,6 +6,7 @@ export const createText = (leistung: RestLeistung): IModultext[] => leistung.mod
     // Prüfen, ob ein Inhalt für den Text vorliegt
     if (t.inhalt && t.inhalt.length > 0) {
         return t.inhalt.map(i => {
+            if (!i.text) i.text = '';
             // HTML-Tags entfernen
             let text = i.text.replace(/<\/?[^>]+(>|$)/g, '').replace(/^-/, '').trim();
             // Text auf eine Zeile reduzieren (CR+LF durch Leerzeichen ersetzen)
